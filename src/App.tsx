@@ -791,7 +791,7 @@ export default function App() {
       </header>
 
       {/* CORE VIEWPORT CANVAS RENDERING */}
-      <main id="coletor-content-canvas" className="flex-1 overflow-y-auto px-4 py-6 max-w-lg mx-auto w-full">
+      <main id="coletor-content-canvas" className="flex-1 overflow-y-auto px-4 pt-6 pb-28 max-w-lg mx-auto w-full">
         {activeTab === 'Scanner' && (
           <ScannerTab
             products={products}
@@ -834,6 +834,18 @@ export default function App() {
                 ))}
               </div>
             )}
+
+            {/* ABRIR PLANILHA DE TESTES BUTTON */}
+            <div className="pt-2">
+              <a 
+                href="https://docs.google.com/spreadsheets/d/1TWQWvp-dZXT2h1XUmt-_CtOp7zsXkt3U8l6zbKcQthA/edit?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+              >
+                📊 ABRIR PLANILHA VINCULADA
+              </a>
+            </div>
           </div>
         )}
 
@@ -848,41 +860,43 @@ export default function App() {
         )}
       </main>
 
-      {/* MINIMALIST FOOTER NAV RAIL - 3 Icons Premium Layout */}
-      <nav id="coletor-bottom-nav" className="bg-slate-900/90 border-t border-slate-800/80 grid grid-cols-3 gap-1 pt-3 pb-6 px-6 fixed bottom-0 left-0 w-full z-40 shadow-2xl backdrop-blur-lg">
-        {[
-          { id: 'Scanner', icon: Scan, label: 'Escanear' },
-          { id: 'Logs', icon: Activity, label: 'Logs' },
-          { id: 'Perfil', icon: UserIcon, label: 'Equipe' }
-        ].map((tab) => {
-          const IconComponent = tab.icon;
-          const isActive = activeTab === tab.id;
+      {/* FLOATING FOOTER NAV RAIL - Transparent background, elevated icons, floating */}
+      <nav id="coletor-bottom-nav" className="grid grid-cols-3 gap-4 pt-1 pb-4 px-8 fixed bottom-6 left-0 w-full z-45 bg-transparent pointer-events-none">
+        <div className="col-span-3 flex justify-around items-center w-full max-w-sm mx-auto bg-slate-950/80 backdrop-blur-lg border border-slate-800/80 rounded-3xl py-2 px-4 shadow-[0_15px_30px_rgba(0,0,0,0.6)] pointer-events-auto">
+          {[
+            { id: 'Scanner', icon: Scan, label: 'Escanear' },
+            { id: 'Logs', icon: Activity, label: 'Logs' },
+            { id: 'Perfil', icon: UserIcon, label: 'Equipe' }
+          ].map((tab) => {
+            const IconComponent = tab.icon;
+            const isActive = activeTab === tab.id;
 
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex flex-col items-center justify-center py-2 rounded-2xl transition cursor-pointer relative active:scale-95 ${
-                isActive 
-                  ? 'text-cyan-400' 
-                  : 'text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              {/* Active neon dot indicator */}
-              {isActive && (
-                <span className="absolute -top-1 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
-              )}
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-2xl transition cursor-pointer relative active:scale-95 ${
+                  isActive 
+                    ? 'text-cyan-400' 
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {/* Active neon dot indicator */}
+                {isActive && (
+                  <span className="absolute top-0 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
+                )}
 
-              {/* Red Activity dot for Perfil/Equipe tab */}
-              {tab.id === 'Perfil' && hasNewActivity && (
-                <span className="absolute top-1 right-8 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-slate-900 z-10 shadow-[0_0_6px_#ef4444]"></span>
-              )}
-              
-              <IconComponent size={22} className={isActive ? 'scale-110 transition-transform' : ''} />
-              <span className="text-[9px] font-bold uppercase tracking-wider font-mono mt-1.5 leading-none">{tab.label}</span>
-            </button>
-          );
-        })}
+                {/* Red Activity dot for Perfil/Equipe tab */}
+                {tab.id === 'Perfil' && hasNewActivity && (
+                  <span className="absolute top-1.5 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-slate-900 z-10 shadow-[0_0_6px_#ef4444]"></span>
+                )}
+                
+                <IconComponent size={22} className={isActive ? 'scale-110 transition-transform' : ''} />
+                <span className="text-[9px] font-bold uppercase tracking-wider font-mono mt-1.5 leading-none">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );
