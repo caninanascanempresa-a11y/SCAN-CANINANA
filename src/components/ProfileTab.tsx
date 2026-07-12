@@ -367,40 +367,6 @@ export default function ProfileTab({
                 </div>
               </div>
 
-              {/* Avatar Preset Colors */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mt-3 bg-slate-950 p-2.5 rounded-xl border border-slate-850">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] text-slate-550 font-bold uppercase font-mono">Cor do Avatar:</span>
-                  <div className="flex items-center gap-1">
-                    {avatarPresets.map((preset, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          setProfileAvatar(preset);
-                          playBeep('success');
-                        }}
-                        className="w-5 h-5 rounded-full cursor-pointer transition active:scale-90 hover:scale-105 border border-slate-900 shadow-sm shrink-0"
-                        style={{ background: preset }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {profileAvatar && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileAvatar('');
-                      playBeep('warning');
-                    }}
-                    className="text-[10px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded-lg hover:bg-red-950/30 transition cursor-pointer"
-                  >
-                    <X size={12} />
-                    Remover Foto
-                  </button>
-                )}
-              </div>
             </div>
 
             {/* Fields */}

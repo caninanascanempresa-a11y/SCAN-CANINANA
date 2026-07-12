@@ -381,18 +381,21 @@ export default function App() {
   const handleCustomScan = (text: string) => {
     const normalizedText = text.trim();
     if (
+      normalizedText.includes('1TWQWvp-dZXT2h1XUmt-_CtOp7zsXkt3U8l6zbKcQthA') ||
+      normalizedText.includes('docs.google.com/spreadsheets/d/1TWQWvp-dZXT2h1XUmt-_CtOp7zsXkt3U8l6zbKcQthA') ||
       normalizedText.includes('docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg') ||
       normalizedText.includes('1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg') ||
       normalizedText.includes('AKfycbz6aPZdwu1JSXxcqqpVTldZrpDEnWSGMuO-MiInBMnsmfxjUyaYr1F4NRCQ-o1vi21UnQ')
     ) {
+      // Usar o App Script bridge oficial configurado
       const targetUrl = 'https://script.google.com/macros/s/AKfycbz6aPZdwu1JSXxcqqpVTldZrpDEnWSGMuO-MiInBMnsmfxjUyaYr1F4NRCQ-o1vi21UnQ/exec';
       setGasUrl(targetUrl);
       localStorage.setItem('caninana_gas_url', targetUrl);
       
-      addLog('QR Code lido com sucesso! Planilha Oficial da Caninana Auto Vidros conectada.', 'success', currentUser?.username || 'Sistema');
+      addLog('QR Code lido com sucesso! Planilha de Testes da Caninana Auto Vidros conectada.', 'success', currentUser?.username || 'Sistema');
       
       playBeep('success');
-      alert('Planilha Caninana Auto Vidros vinculada via QR Code com sucesso! Sincronização iniciada.');
+      alert('Planilha Caninana Auto Vidros de Testes vinculada com sucesso! Sincronização automática ativa.');
       
       // Auto trigger sync
       setTimeout(() => {

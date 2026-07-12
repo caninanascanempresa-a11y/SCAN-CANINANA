@@ -151,7 +151,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     if (isContinuous) {
       if (product) {
         playBeep('success');
-        setNotification({ text: `Produto escaneado com sucesso!`, type: 'success' });
+        setNotification({ text: `Parabéns ${user.name}, seu scan de ${product.description.substring(0, 18)}... foi realizado com sucesso!`, type: 'success' });
         commitScan(code, product, 1);
       } else {
         playBeep('error');
@@ -165,7 +165,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     } else {
       if (product) {
         playBeep('success');
-        setNotification({ text: `Produto escaneado com sucesso!`, type: 'success' });
+        setNotification({ text: `Parabéns ${user.name}, seu scan de ${product.description.substring(0, 18)}... foi realizado com sucesso!`, type: 'success' });
       } else {
         playBeep('error');
         setNotification({ text: `Erro: Produto não encontrado!`, type: 'error' });
@@ -322,15 +322,33 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
           flashSuccess ? 'border-green-500 scale-[1.01] shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'border-slate-800'
         } bg-slate-950 flex flex-col items-center justify-center`}
       >
-        {/* Dynamic Notification Toast */}
+        {/* Premium Notification Toast with User Avatar and App Logo */}
         {notification && (
-          <div className={`absolute top-4 left-4 right-4 z-30 p-3 rounded-2xl border text-center text-xs font-bold font-mono tracking-wide shadow-lg animate-fade-in flex items-center justify-center gap-2 ${
+          <div className={`absolute top-4 left-4 right-4 z-30 p-3 rounded-2xl border shadow-2xl animate-fade-in flex items-center gap-3 backdrop-blur-md ${
             notification.type === 'success' 
-              ? 'bg-emerald-950/90 text-emerald-400 border-emerald-800/80 shadow-emerald-500/10' 
-              : 'bg-red-950/90 text-red-400 border-red-800/80 shadow-red-500/10'
+              ? 'bg-emerald-950/95 text-emerald-300 border-emerald-800/80 shadow-emerald-500/10' 
+              : 'bg-red-950/90 text-red-300 border-red-800/80 shadow-red-500/10'
           }`}>
-            <span className={`w-2 h-2 rounded-full ${notification.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-ping`}></span>
-            {notification.text}
+            {/* Small App Logo */}
+            <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-700/60 shrink-0 bg-slate-900 flex items-center justify-center">
+              <img src="./logo-caninana.jpeg" alt="CS" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            </div>
+
+            {/* Operator Profile Avatar */}
+            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-slate-700/60 bg-cyan-950 flex items-center justify-center font-bold text-xs text-cyan-400 font-mono">
+              {user.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
+            </div>
+
+            {/* Notification message */}
+            <div className="flex-1 text-[10px] font-sans leading-tight font-medium text-left">
+              {notification.text}
+            </div>
+            
+            <span className={`w-2.5 h-2.5 rounded-full ${notification.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse shrink-0`}></span>
           </div>
         )}
         {/* Professional Square QR Code Aiming Overlay */}
