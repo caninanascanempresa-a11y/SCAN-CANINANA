@@ -139,6 +139,7 @@ export default function App() {
   // Active Screen Tab
   const [activeTab, setActiveTab] = useState<'Scanner' | 'Logs' | 'Perfil'>('Scanner');
   const [hasNewActivity, setHasNewActivity] = useState(false);
+  const [showSpreadsheetModal, setShowSpreadsheetModal] = useState(false);
 
   // Persistence triggers
   useEffect(() => {
@@ -865,14 +866,13 @@ export default function App() {
                     
                     {/* Botão de abrir planilha individual para cada log */}
                     <div className="pt-2 border-t border-slate-850/50 flex justify-end">
-                      <a 
-                        href="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/edit?usp=sharing"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-bold font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-3 rounded-lg bg-slate-950 border border-slate-850/60 active:scale-95 transition"
+                      <button 
+                        type="button"
+                        onClick={() => setShowSpreadsheetModal(true)}
+                        className="text-[10px] font-bold font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-3 rounded-lg bg-slate-950 border border-slate-850/60 active:scale-95 transition cursor-pointer"
                       >
                         📊 ABRIR PLANILHA
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -881,14 +881,13 @@ export default function App() {
 
             {/* ABRIR PLANILHA DE PRODUCAO PRINCIPAL BUTTON */}
             <div className="pt-2">
-              <a 
-                href="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/edit?usp=sharing"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+              <button 
+                type="button"
+                onClick={() => setShowSpreadsheetModal(true)}
+                className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg active:scale-98"
               >
-                📊 ABRIR PLANILHA ORIGINAL
-              </a>
+                📊 ABRIR PLANILHA ORIGINAL (SAÍDAS DIÁRIAS)
+              </button>
             </div>
           </div>
         )}
@@ -903,6 +902,34 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* EMBEDDED SPREADSHEET MODAL (IFRAME WITH BLUR BACKGROUND & X BUTTON) */}
+      {showSpreadsheetModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col p-4 animate-fade-in">
+          {/* Header Panel */}
+          <div className="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-t-3xl shadow-lg shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></span>
+              <span className="text-xs font-bold text-white uppercase font-mono tracking-wider">Planilha Automatizada (Saídas Diárias)</span>
+            </div>
+            <button 
+              onClick={() => setShowSpreadsheetModal(false)}
+              className="w-8 h-8 rounded-xl bg-slate-950 hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-slate-850 flex items-center justify-center transition active:scale-95 cursor-pointer font-bold font-mono text-xs"
+            >
+              X
+            </button>
+          </div>
+          
+          {/* Embedded Google Sheets IFrame pointing directly to Saídas Diárias */}
+          <div className="flex-1 bg-slate-950 border-x border-b border-slate-800 rounded-b-3xl overflow-hidden shadow-2xl relative">
+            <iframe 
+              src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/htmlembed?widget=false&headers=false&chrome=false&gid=2040683050" 
+              className="w-full h-full border-none bg-white"
+              title="Planilha Caninana Saídas Diárias"
+            ></iframe>
+          </div>
+        </div>
+      )}
 
       {/* FLOATING FOOTER NAV RAIL - Transparent background, elevated icons, floating */}
       <nav id="coletor-bottom-nav" className="grid grid-cols-3 gap-4 pt-1 pb-4 px-8 fixed bottom-6 left-0 w-full z-45 bg-transparent pointer-events-none">

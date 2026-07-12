@@ -323,48 +323,25 @@ export default function ProfileTab({
                 Foto de Perfil
               </label>
               
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                {/* Preview */}
-                <div className="shrink-0 relative group">
-                  {renderAvatar(profileAvatar, profileName, "w-20 h-20 ring-2 ring-slate-800")}
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('my-gallery-input')?.click()}
-                    className="absolute bottom-0 right-0 bg-cyan-500 hover:bg-cyan-600 text-white p-1.5 rounded-full shadow-md transition active:scale-95 cursor-pointer border border-slate-900"
-                    title="Carregar da galeria"
-                  >
-                    <Camera size={12} />
-                  </button>
-                </div>
-
-                {/* Dropzone/Selector */}
-                <div className="flex-1 w-full">
-                  <div
-                    onDragEnter={(e) => handleDrag(e, 'me')}
-                    onDragOver={(e) => handleDrag(e, 'me')}
-                    onDragLeave={(e) => handleDrag(e, 'me')}
-                    onDrop={(e) => handleDrop(e, 'me')}
-                    className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer relative ${
-                      dragActive 
-                        ? 'border-cyan-500 bg-cyan-500/5' 
-                        : 'border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-950/70'
-                    }`}
-                    onClick={() => document.getElementById('my-gallery-input')?.click()}
-                  >
-                    <input
-                      id="my-gallery-input"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileChange(e, setProfileAvatar)}
-                    />
-                    <Upload className="mx-auto text-slate-500 mb-1" size={16} />
-                    <p className="text-[10px] font-medium text-slate-400">
-                      Toque para abrir a <span className="text-cyan-400 font-semibold">Galeria do Celular</span>
-                    </p>
-                    <p className="text-[8px] text-slate-650 font-mono mt-0.5 uppercase">Suporta PNG ou JPG (máx 500kb)</p>
+              <div className="flex flex-col items-center justify-center py-2">
+                {/* Clickable Circle Avatar preview */}
+                <div 
+                  onClick={() => document.getElementById('my-gallery-input')?.click()}
+                  className="shrink-0 relative group cursor-pointer active:scale-95 transition"
+                >
+                  <input
+                    id="my-gallery-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileChange(e, setProfileAvatar)}
+                  />
+                  {renderAvatar(profileAvatar, profileName, "w-24 h-24 ring-4 ring-cyan-500/25 shadow-lg")}
+                  <div className="absolute bottom-0 right-0 bg-cyan-500 hover:bg-cyan-600 text-slate-950 p-2 rounded-full shadow-lg border-2 border-slate-900 flex items-center justify-center">
+                    <Camera size={14} />
                   </div>
                 </div>
+                <span className="text-[9px] text-slate-500 font-mono mt-2 uppercase tracking-wide">Toque na foto para abrir a Galeria</span>
               </div>
 
             </div>
