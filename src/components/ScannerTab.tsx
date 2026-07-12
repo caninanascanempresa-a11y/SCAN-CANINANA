@@ -7,13 +7,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scan, 
   Settings2, 
-  ArrowRightLeft, 
   Plus, 
   Minus, 
   Check, 
   AlertCircle, 
   Camera, 
-  HelpCircle, 
   MapPin, 
   Sparkles, 
   UserPlus 
@@ -38,7 +36,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
   const [quantity, setQuantity] = useState(1);
   const [originLocation, setOriginLocation] = useState('Geral');
   const [destinationLocation, setDestinationLocation] = useState('Prateleira A');
-  const [flashOn, setFlashOn] = useState(false);
 
   // Camera scanner states
   const [scannerActive, setScannerActive] = useState(false);
@@ -85,7 +82,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       const config = { 
         fps: 25, 
         qrbox: (width: number, height: number) => {
-          // Square scan area for perfect QR Code and barcode capture
           const size = Math.floor(Math.min(width, height) * 0.75);
           return {
             width: size,
@@ -97,7 +93,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         }
       };
 
-      // Try back camera first
       await html5Qrcode.start(
         { facingMode: "environment" },
         config,
@@ -123,7 +118,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     setScannerActive(false);
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (html5QrcodeRef.current) {
@@ -132,30 +126,24 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     };
   }, []);
 
-  // Handle successful barcode scan (Real or Simulated)
   const handleBarcodeScanned = (barcode: string) => {
     const code = barcode.trim();
     if (!code) return;
 
-    // Check for custom scans (e.g. spreadsheet configuration link)
     if (onCustomScan && onCustomScan(code)) {
       return;
     }
 
-    // Beep & flash UI
     setFlashSuccess(true);
     setTimeout(() => setFlashSuccess(false), 300);
 
     const product = products.find((p) => p.barcode === code);
 
     if (isContinuous) {
-      // In Continuous scan, register instantly
       playBeep('success');
       if (product) {
         commitScan(code, product, 1);
       } else {
-        // Unknown product: force open product creator so they can register it,
-        // since we cannot guess description without user input or AI
         playBeep('warning');
         setScannedBarcode(code);
         setMatchedProduct(null);
@@ -164,20 +152,17 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         setIsCreatingProduct(true);
       }
     } else {
-      // Manual mode: open edit form/modal
       playBeep('success');
       setScannedBarcode(code);
       setMatchedProduct(product || null);
       setQuantity(1);
       if (!product) {
-        // Prepare product creation fields
         setNewDescription('');
         setNewApplication('');
       }
     }
   };
 
-  // Commit scan result into movements or inventory
   const commitScan = (code: string, product: Product | null, qty: number) => {
     const timestamp = new Date().toISOString();
 
@@ -192,7 +177,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       });
     } else {
       onAddMovement({
-        id: 'mov_' + Math.random().toString(36).substr(2, 9),
+        id: 'mov_' + Math.random().toString(36).substring(2, 9),
         barcode: code,
         type: scanMode === 'Transferência' ? 'Transferência' : (scanMode as any),
         quantity: qty,
@@ -204,12 +189,10 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       });
     }
 
-    // Reset scan wizard
     setScannedBarcode(null);
     setMatchedProduct(null);
   };
 
-  // AI-powered product builder
   const handleAiSuggest = async () => {
     if (!scannedBarcode || aiLoading) return;
     setAiLoading(true);
@@ -246,7 +229,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     }
   };
 
-  // Save new product and then commit the scan movement
   const handleSaveAndCommitProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!scannedBarcode) return;
@@ -256,7 +238,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       description: newDescription || `Produto Novo EAN ${scannedBarcode}`,
       category: newCategory,
       application: newApplication || 'Aplicação Universal',
-      stock: 0, // Starts at zero, then stock is updated by the commit movement
+      stock: 0,
       minStock: Number(newMinStock) || 3,
     };
 
@@ -267,21 +249,22 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
   };
 
   return (
-    <div id="scanner-tab-container" className="p-4 max-w-lg mx-auto pb-24 space-y-4">
+    <div id="scanner-tab-container" className="p-4 max-w-lg mx-auto pb-24 space-y-5 text-slate-100">
       
       {/* MODE SELECTOR */}
-      <div id="mode-selector" className="bg-slate-100 p-1 rounded-xl border border-slate-200 grid grid-cols-4 gap-1">
+      <div id="mode-selector" className="bg-slate-900 p-1.5 rounded-2xl border border-slate-800 grid grid-cols-4 gap-1.5 shadow-lg">
         {(['Entrada', 'Saída', 'Transferência', 'Inventário'] as const).map((mode) => (
           <button
             key={mode}
             id={`mode-btn-${mode.toLowerCase()}`}
+            type="button"
             onClick={() => {
               setScanMode(mode);
             }}
-            className={`py-2 px-1 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono text-center cursor-pointer transition-all ${
+            className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-center cursor-pointer transition-all ${
               scanMode === mode 
-                ? 'bg-[#2497DE] text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-cyan-500 text-slate-950 shadow-md font-extrabold' 
+                : 'text-slate-500 hover:text-slate-350'
             }`}
           >
             {mode === 'Entrada' && 'Entrada'}
@@ -293,12 +276,12 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       </div>
 
       {/* CONTINUOUS READING AND SCANNING SETUP */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 px-4 py-3 rounded-xl shadow-sm">
-        <div className="flex items-center gap-2">
-          <Settings2 size={16} className="text-[#2497DE]" />
+      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 px-5 py-3 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-3">
+          <Settings2 size={16} className="text-cyan-400" />
           <div>
-            <div className="text-xs font-bold text-slate-800 uppercase font-mono">Leitura Contínua</div>
-            <div className="text-[10px] text-slate-400">Auto-salva coletas em lote</div>
+            <div className="text-xs font-bold text-white uppercase font-mono">Leitura Contínua</div>
+            <div className="text-[10px] text-slate-500">Auto-salva coletas em lote</div>
           </div>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -311,28 +294,28 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
               setIsContinuous(e.target.checked);
             }}
           />
-          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2497DE]"></div>
+          <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
         </label>
       </div>
 
       {/* CORE CAMERA VIEWPORT PANELS - Square Aspect for QR Codes */}
       <div 
         id="camera-panel-wrapper" 
-        className={`relative aspect-square w-full max-w-sm mx-auto rounded-3xl overflow-hidden border transition ${
-          flashSuccess ? 'border-green-500 scale-101' : 'border-slate-200'
+        className={`relative aspect-square w-full max-w-sm mx-auto rounded-3xl overflow-hidden border transition-all duration-300 ${
+          flashSuccess ? 'border-green-500 scale-[1.01] shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'border-slate-800'
         } bg-slate-950 flex flex-col items-center justify-center`}
       >
         {/* Professional Square QR Code Aiming Overlay */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-          <div className="w-64 h-64 border border-[#2497DE]/20 relative flex items-center justify-center bg-black/5">
+          <div className="w-64 h-64 border border-cyan-500/20 relative flex items-center justify-center bg-black/10">
             {/* Scanning line laser */}
             <div className="w-full h-0.5 bg-cyan-400 scanner-laser absolute shadow-[0_0_8px_#22d3ee]"></div>
             
             {/* Corner brackets */}
-            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-[#2497DE] rounded-tl-lg"></div>
-            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-[#2497DE] rounded-tr-lg"></div>
-            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-[#2497DE] rounded-bl-lg"></div>
-            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-[#2497DE] rounded-br-lg"></div>
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-cyan-500 rounded-tl-lg"></div>
+            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-cyan-500 rounded-tr-lg"></div>
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-cyan-500 rounded-bl-lg"></div>
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-cyan-500 rounded-br-lg"></div>
           </div>
         </div>
 
@@ -345,31 +328,33 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
         {/* Idle display overlay */}
         {!scannerActive && (
-          <div className="text-center p-6 space-y-3 z-10">
-            <div className="w-12 h-12 bg-zinc-850/80 border border-zinc-750 rounded-full flex items-center justify-center mx-auto text-zinc-300">
-              <Camera size={22} />
+          <div className="text-center p-6 space-y-4 z-10">
+            <div className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-400 shadow-lg">
+              <Camera size={24} />
             </div>
             <div>
-              <div className="text-sm font-bold text-white">Scanner da Câmera Desativado</div>
-              <p className="text-[10px] text-slate-400 max-w-xs mt-1 leading-normal">Instale ou inicie a câmera para leituras em lote profissionais pela lente do celular.</p>
+              <div className="text-sm font-bold text-white">Câmera Desativada</div>
+              <p className="text-[10px] text-slate-500 max-w-xs mt-1 leading-normal">Ative a câmera para coletar dados escaneando os códigos diretamente.</p>
             </div>
             <button
               id="activate-camera-btn"
+              type="button"
               onClick={toggleCamera}
-              className="bg-[#2497DE] hover:bg-[#1d7ebc] text-white text-xs font-bold py-2 px-4 rounded-xl shadow-sm transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
+              className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold py-2.5 px-5 rounded-xl shadow-md shadow-cyan-500/10 transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
             >
               <Scan size={14} />
-              ATIVAR CÂMERA SCANNER
+              Ativar Câmera
             </button>
           </div>
         )}
 
         {scannerActive && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-zinc-800 flex items-center gap-2 z-20">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            <span className="text-[9px] font-mono font-bold text-zinc-300 uppercase tracking-widest">Câmera Ativa</span>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md px-4 py-1.5 rounded-full border border-slate-850 flex items-center gap-2 z-25 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span className="text-[9px] font-mono font-bold text-slate-300 uppercase tracking-widest">Leitor Ativo</span>
             <button 
               onClick={stopCamera} 
+              type="button"
               className="text-red-400 hover:text-red-300 text-[9px] uppercase font-bold ml-2 cursor-pointer font-mono"
             >
               Parar
@@ -379,8 +364,8 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       </div>
 
       {scannerError && (
-        <div id="scanner-error-log" className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-start gap-2.5 text-xs text-amber-700 leading-normal shadow-sm">
-          <AlertCircle size={16} className="shrink-0 mt-0.5 text-amber-600" />
+        <div id="scanner-error-log" className="bg-amber-955/40 border border-amber-900/50 p-4.5 rounded-2xl flex items-start gap-2.5 text-xs text-amber-400 leading-normal shadow-lg">
+          <AlertCircle size={16} className="shrink-0 mt-0.5 text-amber-500" />
           <span>{scannerError}</span>
         </div>
       )}
@@ -389,32 +374,34 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
       {/* 1. Manual scan verification dialogue (when isContinuous is false) */}
       {!isContinuous && scannedBarcode && !matchedProduct && !isCreatingProduct && (
-        <div id="unknown-item-panel" className="bg-white border border-amber-500/30 rounded-xl p-4 space-y-3 animate-fade-in shadow-sm border-l-4 border-l-amber-500">
+        <div id="unknown-item-panel" className="bg-slate-900 border border-amber-550/30 rounded-2xl p-5 space-y-4 animate-fade-in shadow-xl border-l-4 border-l-amber-500">
           <div className="flex items-start gap-2.5">
             <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
             <div>
-              <h4 className="text-sm font-bold text-slate-800">Código não encontrado no sistema</h4>
-              <p className="text-xs text-slate-500 mt-0.5">O código de barras <strong className="text-amber-600 font-mono">{scannedBarcode}</strong> não corresponde a nenhum item cadastrado.</p>
+              <h4 className="text-sm font-bold text-white">Item Não Cadastrado</h4>
+              <p className="text-xs text-slate-455 mt-1">O código <strong className="text-amber-400 font-mono">{scannedBarcode}</strong> não foi localizado.</p>
             </div>
           </div>
           <div className="flex gap-2">
             <button
               id="start-create-product-btn"
+              type="button"
               onClick={() => {
                 setIsCreatingProduct(true);
                 setNewDescription('');
                 setNewApplication('');
                 setNewCategory('Vidros Dianteiros');
               }}
-              className="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-sm"
+              className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-md shadow-amber-600/15"
             >
               <UserPlus size={14} />
-              CADASTRAR PRODUTO NOVO
+              Criar Cadastro
             </button>
             <button
               id="cancel-scan-btn"
+              type="button"
               onClick={() => setScannedBarcode(null)}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 text-xs py-2.5 px-4 rounded-xl transition cursor-pointer"
+              className="bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs py-2.5 px-4 rounded-xl transition cursor-pointer border border-slate-750"
             >
               Descartar
             </button>
@@ -424,13 +411,13 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
       {/* 2. Manual Scanned Confirmation Form (for existing items, isContinuous = false) */}
       {!isContinuous && scannedBarcode && matchedProduct && (
-        <div id="manual-commit-panel" className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 animate-fade-in shadow-md border-l-4 border-l-[#2497DE]">
-          <div className="border-b border-slate-100 pb-2.5">
-            <span className="bg-[#2497DE]/10 text-[#2497DE] font-bold font-mono text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider">Leitura Manual</span>
-            <h4 className="text-sm font-bold text-slate-800 mt-1.5">{matchedProduct.description}</h4>
-            <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+        <div id="manual-commit-panel" className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-5 animate-fade-in shadow-xl border-l-4 border-l-cyan-500">
+          <div className="border-b border-slate-800 pb-3">
+            <span className="bg-cyan-950/50 text-cyan-400 font-bold font-mono text-[9px] px-2 py-0.5 rounded-md border border-cyan-900/35 uppercase tracking-wider">Leitura Manual</span>
+            <h4 className="text-sm font-bold text-white mt-2">{matchedProduct.description}</h4>
+            <div className="flex justify-between text-[10px] text-slate-550 font-mono mt-1">
               <span>Cód: {scannedBarcode}</span>
-              <span>Estoque Atual: <strong className="text-slate-800 font-bold font-mono">{matchedProduct.stock} un</strong></span>
+              <span>Estoque: <strong className="text-slate-300 font-bold font-mono">{matchedProduct.stock} un</strong></span>
             </div>
           </div>
 
@@ -438,89 +425,85 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
           {scanMode === 'Transferência' && (
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 font-mono">Origem</label>
+                <label className="block text-slate-500 text-[10px] uppercase font-bold mb-1.5 font-mono">Origem</label>
                 <div className="relative">
-                  <MapPin size={12} className="absolute left-2.5 top-2.5 text-slate-400" />
+                  <MapPin size={12} className="absolute left-2.5 top-2.5 text-slate-500" />
                   <select
                     value={originLocation}
                     onChange={(e) => setOriginLocation(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-7 pr-2 text-slate-750 focus:outline-none focus:border-[#2497DE]"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-8 pr-2 text-white focus:outline-none focus:border-cyan-500"
                   >
                     <option value="Geral">Geral</option>
                     <option value="Prateleira A">Prateleira A</option>
                     <option value="Prateleira B">Prateleira B</option>
-                    <option value="Carro de Serviço">Serviço Móvel</option>
+                    <option value="Vitrine">Vitrine</option>
+                    <option value="Depósito 1">Depósito 1</option>
                   </select>
                 </div>
               </div>
+
               <div>
-                <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1 font-mono">Destino</label>
+                <label className="block text-slate-500 text-[10px] uppercase font-bold mb-1.5 font-mono">Destino</label>
                 <div className="relative">
-                  <MapPin size={12} className="absolute left-2.5 top-2.5 text-[#2497DE]" />
+                  <MapPin size={12} className="absolute left-2.5 top-2.5 text-slate-500" />
                   <select
                     value={destinationLocation}
                     onChange={(e) => setDestinationLocation(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-7 pr-2 text-slate-750 focus:outline-none focus:border-[#2497DE]"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-8 pr-2 text-white focus:outline-none focus:border-cyan-500"
                   >
                     <option value="Prateleira A">Prateleira A</option>
                     <option value="Prateleira B">Prateleira B</option>
-                    <option value="Prateleira C">Prateleira C</option>
-                    <option value="Carro de Serviço">Serviço Móvel</option>
+                    <option value="Vitrine">Vitrine</option>
+                    <option value="Depósito 1">Depósito 1</option>
+                    <option value="Geral">Geral</option>
                   </select>
                 </div>
               </div>
             </div>
           )}
 
-          {/* QUANTITY CONTROL CHANGER */}
-          <div className="space-y-1.5">
-            <label className="block text-slate-400 text-[10px] uppercase font-bold font-mono">Quantidade para {scanMode}</label>
+          {/* QUANTITY CONTROL */}
+          <div className="flex items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-850">
+            <span className="text-xs font-bold text-slate-400 font-mono uppercase">Quantidade</span>
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setQuantity((q) => Math.max(1, q - 1));
-                }}
-                className="w-12 h-12 bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl flex items-center justify-center font-bold text-lg cursor-pointer active:bg-slate-100"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-10 h-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-slate-300 hover:text-white cursor-pointer active:scale-90 transition"
               >
-                <Minus size={16} />
+                <Minus size={14} />
               </button>
               <input
                 id="quantity-picker"
                 type="number"
-                className="flex-1 h-12 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-center text-lg font-mono font-bold focus:outline-none focus:border-[#2497DE]"
+                className="w-14 h-10 bg-slate-950 border border-slate-850 text-white rounded-xl text-center text-sm font-mono font-bold focus:outline-none focus:border-cyan-500"
                 value={quantity}
                 min={1}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
               />
               <button
                 type="button"
-                onClick={() => {
-                  setQuantity((q) => q + 1);
-                }}
-                className="w-12 h-12 bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl flex items-center justify-center font-bold text-lg cursor-pointer active:bg-slate-100"
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-10 h-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-slate-300 hover:text-white cursor-pointer active:scale-90 transition"
               >
-                <Plus size={16} />
+                <Plus size={14} />
               </button>
             </div>
           </div>
 
-          {/* CONFIRM / CANCEL */}
           <div className="flex gap-2">
             <button
-              id="confirm-manual-commit-btn"
-              onClick={() => {
-                commitScan(scannedBarcode, matchedProduct, quantity);
-                playBeep('success');
-              }}
-              className="flex-1 bg-[#2497DE] hover:bg-[#1d7ebc] text-white text-xs font-bold py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm active:scale-98"
+              onClick={() => commitScan(scannedBarcode, matchedProduct, quantity)}
+              type="button"
+              className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/10 active:scale-[0.99]"
             >
-              <Check size={16} />
-              REGISTRAR {scanMode.toUpperCase()}
+              <Check size={14} />
+              CONFIRMAR COLETA
             </button>
             <button
               onClick={() => setScannedBarcode(null)}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 text-xs py-3 px-4 rounded-xl transition cursor-pointer"
+              type="button"
+              className="bg-slate-800 hover:bg-slate-755 text-slate-300 text-xs py-3 px-5 rounded-xl transition cursor-pointer border border-slate-750"
             >
               Cancelar
             </button>
@@ -530,33 +513,33 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
       {/* 3. New Product Creator Drawer / Dialog */}
       {isCreatingProduct && scannedBarcode && (
-        <form onSubmit={handleSaveAndCommitProduct} id="new-product-form" className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 animate-fade-in shadow-md border-t-4 border-t-amber-500">
-          <div className="border-b border-slate-100 pb-2.5 flex justify-between items-start">
+        <form onSubmit={handleSaveAndCommitProduct} id="new-product-form" className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 animate-fade-in shadow-xl">
+          <div className="border-b border-slate-800 pb-3 flex justify-between items-start">
             <div>
-              <span className="bg-amber-500/10 text-amber-600 font-bold font-mono text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider">Cadastro Rápido</span>
-              <h4 className="text-sm font-bold text-slate-800 mt-1.5 font-sans">Novo Produto Caninana</h4>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">EAN: {scannedBarcode}</p>
+              <span className="bg-cyan-950/50 text-cyan-400 font-bold font-mono text-[9px] px-2 py-0.5 rounded-md border border-cyan-900/35 uppercase tracking-wider font-mono">Cadastro Rápido</span>
+              <h4 className="text-sm font-bold text-white mt-2 font-sans">Novo Vidro Caninana</h4>
+              <p className="text-[10px] text-slate-555 font-mono mt-0.5">EAN: {scannedBarcode}</p>
             </div>
             <button
               type="button"
               id="ai-suggest-fields-btn"
               onClick={handleAiSuggest}
               disabled={aiLoading}
-              className="bg-purple-50 border border-purple-200 hover:bg-purple-100 text-purple-700 text-[9px] font-bold py-1.5 px-2.5 rounded-lg transition cursor-pointer flex items-center gap-1 uppercase tracking-wider font-mono disabled:opacity-50 shadow-sm"
+              className="bg-gradient-to-r from-violet-650 to-indigo-650 hover:from-violet-700 hover:to-indigo-700 text-white text-[9px] font-bold py-1.5 px-3 rounded-lg transition shadow-md disabled:opacity-60 cursor-pointer"
             >
               <Sparkles size={12} className={aiLoading ? 'animate-spin' : ''} />
-              {aiLoading ? 'IA Pensando...' : 'Sugerir com IA'}
+              {aiLoading ? 'Processando...' : 'Sugerir com IA'}
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div>
-              <label className="block text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Descrição Técnica (Modelo/Ano/Detalhes)</label>
+              <label className="block text-slate-555 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Descrição Técnica (Modelo/Ano)</label>
               <input
                 id="new-product-desc"
                 type="text"
                 required
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-xs focus:outline-none focus:border-[#2497DE] focus:bg-white transition"
+                className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500 transition"
                 placeholder="Ex: Para-brisa Onix 2015 Verde Térmico"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
@@ -565,12 +548,12 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Categoria</label>
+                <label className="block text-slate-555 text-[10px] font-bold uppercase tracking-wider mb-1.5 font-mono">Categoria</label>
                 <select
                   id="new-product-category"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-705 rounded-lg p-2.5 text-xs focus:outline-none focus:border-[#2497DE] focus:bg-white transition"
+                  className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500 transition"
                 >
                   <option value="Vidros Dianteiros">Vidros Dianteiros</option>
                   <option value="Vidros Traseiros">Vidros Traseiros</option>
@@ -580,53 +563,61 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
                   <option value="Acessórios e Colas">Acessórios e Colas</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Estoque Mínimo</label>
+                <label className="block text-slate-555 text-[10px] font-bold uppercase tracking-wider mb-1.5 font-mono">Compatibilidade</label>
                 <input
-                  id="new-product-min-stock"
-                  type="number"
-                  required
-                  min={1}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-xs focus:outline-none focus:border-[#2497DE] focus:bg-white transition font-mono"
-                  value={newMinStock}
-                  onChange={(e) => setNewMinStock(parseInt(e.target.value) || 3)}
+                  id="new-product-app"
+                  type="text"
+                  className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500 transition"
+                  placeholder="Ex: Corolla, Civic"
+                  value={newApplication}
+                  onChange={(e) => setNewApplication(e.target.value)}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Veículos & Anos Aplicáveis</label>
-              <input
-                id="new-product-app"
-                type="text"
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-xs focus:outline-none focus:border-[#2497DE] focus:bg-white transition"
-                placeholder="Ex: Chevrolet Onix Hatch (2013-2019)"
-                value={newApplication}
-                onChange={(e) => setNewApplication(e.target.value)}
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-slate-555 text-[10px] font-bold uppercase tracking-wider mb-1.5 font-mono">Estoque Mínimo</label>
+                <input
+                  id="new-product-min-stock"
+                  type="number"
+                  className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500 transition"
+                  value={newMinStock}
+                  onChange={(e) => setNewMinStock(Number(e.target.value))}
+                />
+              </div>
 
-            <div>
-              <label className="block text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1 font-mono">Quantidade Inicial para {scanMode}</label>
-              <input
-                id="new-product-initial-qty"
-                type="number"
-                min={1}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-xs focus:outline-none focus:border-[#2497DE] focus:bg-white transition font-mono font-bold"
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-              />
+              <div>
+                <label className="block text-slate-555 text-[10px] font-bold uppercase tracking-wider mb-1.5 font-mono">Qtd Coletada</label>
+                <div className="flex items-center justify-center bg-slate-950 rounded-xl border border-slate-850 h-[38px]">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-8 h-8 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center text-xs font-mono font-bold text-white">{quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-8 h-8 bg-slate-900 border border-slate-850 text-slate-400 hover:text-white"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-3 border-t border-slate-800">
             <button
-              id="save-new-product-btn"
               type="submit"
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-sm active:scale-98"
+              className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold py-3 rounded-xl transition cursor-pointer"
             >
-              <Check size={14} />
-              CADASTRAR E LANÇAR {scanMode.toUpperCase()}
+              Salvar e Coletar
             </button>
             <button
               type="button"
@@ -634,7 +625,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
                 setIsCreatingProduct(false);
                 setScannedBarcode(null);
               }}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 text-xs py-3 px-4 rounded-xl transition cursor-pointer"
+              className="bg-slate-800 hover:bg-slate-750 text-slate-355 text-xs py-3 px-4 rounded-xl transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -642,10 +633,62 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         </form>
       )}
 
-      {/* RUGGED COLLECTOR LOGO / DETAILS */}
-      <div className="text-center text-slate-400 text-[10px] font-mono uppercase pt-4 leading-relaxed">
-        Modo de Leitura: {scanMode === 'Inventário' ? 'Contagem Acumulada' : 'Ajuste Imediato'}<br />
-        Dispositivo: Android / iOS Scanner Core v2.5
+      {/* SIMULATED BARCODE READER SECTION FOR TESTING */}
+      <div id="barcode-simulator" className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
+          <Scan className="text-cyan-400" size={16} />
+          <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Simulador de Código</h3>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { code: '7891020304050', label: 'Vidro Corolla' },
+              { code: '7891122334455', label: 'Para-brisa Civic' },
+              { code: '7892233445566', label: 'Retrovisor Hilux' },
+              { code: '7893344556677', label: 'Vidro Lateral HB20' }
+            ].map((sim) => (
+              <button
+                key={sim.code}
+                type="button"
+                onClick={() => handleBarcodeScanned(sim.code)}
+                className="bg-slate-950 hover:bg-slate-850 border border-slate-850 p-2.5 rounded-xl text-left transition active:scale-97 cursor-pointer"
+              >
+                <div className="text-[10px] font-bold text-white truncate">{sim.label}</div>
+                <div className="text-[8px] text-slate-500 font-mono mt-0.5">{sim.code}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              id="simulator-custom-barcode"
+              type="text"
+              className="flex-1 bg-slate-950 border border-slate-850 text-white rounded-xl py-2.5 px-4 text-xs font-mono focus:outline-none focus:border-cyan-500 placeholder-slate-650"
+              placeholder="Digite outro código..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const input = e.currentTarget;
+                  handleBarcodeScanned(input.value);
+                  input.value = '';
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('simulator-custom-barcode') as HTMLInputElement;
+                if (el && el.value.trim()) {
+                  handleBarcodeScanned(el.value.trim());
+                  el.value = '';
+                }
+              }}
+              className="bg-slate-800 hover:bg-slate-750 border border-slate-750 text-slate-350 text-xs px-4 rounded-xl transition cursor-pointer"
+            >
+              Ler
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

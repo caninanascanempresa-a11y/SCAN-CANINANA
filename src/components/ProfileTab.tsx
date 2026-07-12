@@ -250,23 +250,23 @@ export default function ProfileTab({
   };
 
   return (
-    <div id="profile-tab-container" className="p-4 max-w-lg mx-auto pb-24 space-y-4 animate-fade-in">
+    <div id="profile-tab-container" className="p-4 max-w-lg mx-auto pb-24 space-y-5 animate-fade-in text-slate-100">
       
       {/* HEADER HERO CARD */}
-      <div className="bg-gradient-to-r from-[#2497DE] to-[#1a7bb7] rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+      <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none">
           <UserIcon size={140} />
         </div>
         
         <div className="flex items-center gap-4 relative z-10">
-          {renderAvatar(currentUser.avatar || '', currentUser.name, "w-16 h-16 ring-4 ring-white/25")}
+          {renderAvatar(currentUser.avatar || '', currentUser.name, "w-16 h-16 ring-4 ring-white/20")}
           <div>
-            <h2 className="text-base font-black tracking-tight">{currentUser.name}</h2>
-            <p className="text-[10px] font-mono uppercase bg-white/10 px-2 py-0.5 rounded-full inline-block mt-1 font-bold">
+            <h2 className="text-lg font-bold tracking-tight">{currentUser.name}</h2>
+            <p className="text-[10px] font-mono uppercase bg-white/15 px-2 py-0.5 rounded-full inline-block mt-1 font-semibold">
               @{currentUser.username} • {currentUser.role}
             </p>
             {currentUser.email && (
-              <p className="text-xs text-blue-100 mt-1 flex items-center gap-1">
+              <p className="text-xs text-cyan-100 mt-1.5 flex items-center gap-1">
                 <Mail size={12} />
                 {currentUser.email}
               </p>
@@ -276,17 +276,17 @@ export default function ProfileTab({
       </div>
 
       {/* SUB TAB SELECTOR */}
-      <div className="bg-slate-100 p-1 rounded-xl grid grid-cols-2 gap-1">
+      <div className="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl grid grid-cols-2 gap-1.5">
         <button
           onClick={() => {
             setActiveSubTab('me');
             setEditingUser(null);
             setIsAddingUser(false);
           }}
-          className={`py-2 text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+          className={`py-2 text-xs font-bold font-mono uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
             activeSubTab === 'me' 
-              ? 'bg-white text-[#2497DE] shadow-sm' 
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-slate-850 text-cyan-400 shadow-inner border border-slate-800' 
+              : 'text-slate-500 hover:text-slate-350'
           }`}
         >
           Meu Perfil
@@ -297,10 +297,10 @@ export default function ProfileTab({
             setEditingUser(null);
             setIsAddingUser(false);
           }}
-          className={`py-2 text-xs font-bold font-mono uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`py-2 text-xs font-bold font-mono uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeSubTab === 'team' 
-              ? 'bg-white text-[#2497DE] shadow-sm' 
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-slate-850 text-cyan-400 shadow-inner border border-slate-800' 
+              : 'text-slate-500 hover:text-slate-350'
           }`}
         >
           <Users size={14} />
@@ -310,27 +310,27 @@ export default function ProfileTab({
 
       {/* TAB SUB-PAGES */}
       {activeSubTab === 'me' ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-            <Camera className="text-[#2497DE]" size={16} />
-            <h3 className="text-xs font-bold text-slate-800 uppercase font-mono tracking-wider">Alterar Meus Dados</h3>
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xl">
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <Camera className="text-cyan-400" size={16} />
+            <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Alterar Meus Dados</h3>
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-4">
             {/* Gallery Avatar Selector */}
             <div>
-              <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-2 font-mono">
-                Foto de Perfil (Galeria do Celular ou Câmera)
+              <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-2.5 font-mono">
+                Foto de Perfil
               </label>
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 {/* Preview */}
                 <div className="shrink-0 relative group">
-                  {renderAvatar(profileAvatar, profileName, "w-20 h-20 ring-2 ring-slate-100")}
+                  {renderAvatar(profileAvatar, profileName, "w-20 h-20 ring-2 ring-slate-800")}
                   <button
                     type="button"
                     onClick={() => document.getElementById('my-gallery-input')?.click()}
-                    className="absolute bottom-0 right-0 bg-[#2497DE] hover:bg-[#1d7ebc] text-white p-1.5 rounded-full shadow-md transition active:scale-95 cursor-pointer"
+                    className="absolute bottom-0 right-0 bg-cyan-500 hover:bg-cyan-600 text-white p-1.5 rounded-full shadow-md transition active:scale-95 cursor-pointer border border-slate-900"
                     title="Carregar da galeria"
                   >
                     <Camera size={12} />
@@ -344,10 +344,10 @@ export default function ProfileTab({
                     onDragOver={(e) => handleDrag(e, 'me')}
                     onDragLeave={(e) => handleDrag(e, 'me')}
                     onDrop={(e) => handleDrop(e, 'me')}
-                    className={`border-2 border-dashed rounded-xl p-3 text-center transition-all cursor-pointer relative ${
+                    className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer relative ${
                       dragActive 
-                        ? 'border-[#2497DE] bg-[#2497DE]/5' 
-                        : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100/50'
+                        ? 'border-cyan-500 bg-cyan-500/5' 
+                        : 'border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-950/70'
                     }`}
                     onClick={() => document.getElementById('my-gallery-input')?.click()}
                   >
@@ -358,19 +358,19 @@ export default function ProfileTab({
                       className="hidden"
                       onChange={(e) => handleFileChange(e, setProfileAvatar)}
                     />
-                    <Upload className="mx-auto text-slate-400 mb-1" size={16} />
-                    <p className="text-[10px] font-medium text-slate-600">
-                      Toque para abrir a <span className="text-[#2497DE] font-semibold">Galeria do Celular</span>
+                    <Upload className="mx-auto text-slate-500 mb-1" size={16} />
+                    <p className="text-[10px] font-medium text-slate-400">
+                      Toque para abrir a <span className="text-cyan-400 font-semibold">Galeria do Celular</span>
                     </p>
-                    <p className="text-[8px] text-slate-400 font-mono mt-0.5 uppercase">Suporta PNG ou JPG (máx 500kb)</p>
+                    <p className="text-[8px] text-slate-650 font-mono mt-0.5 uppercase">Suporta PNG ou JPG (máx 500kb)</p>
                   </div>
                 </div>
               </div>
 
               {/* Avatar Preset Colors */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mt-3 bg-slate-50 p-2 rounded-lg border border-slate-100">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-3 bg-slate-950 p-2.5 rounded-xl border border-slate-850">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase font-mono">Ou escolha uma cor:</span>
+                  <span className="text-[9px] text-slate-550 font-bold uppercase font-mono">Cor do Avatar:</span>
                   <div className="flex items-center gap-1">
                     {avatarPresets.map((preset, i) => (
                       <button
@@ -380,7 +380,7 @@ export default function ProfileTab({
                           setProfileAvatar(preset);
                           playBeep('success');
                         }}
-                        className="w-5 h-5 rounded-full cursor-pointer transition active:scale-90 hover:scale-105 border border-white shadow-sm shrink-0"
+                        className="w-5 h-5 rounded-full cursor-pointer transition active:scale-90 hover:scale-105 border border-slate-900 shadow-sm shrink-0"
                         style={{ background: preset }}
                       />
                     ))}
@@ -394,7 +394,7 @@ export default function ProfileTab({
                       setProfileAvatar('');
                       playBeep('warning');
                     }}
-                    className="text-[10px] text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-red-50 transition cursor-pointer"
+                    className="text-[10px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded-lg hover:bg-red-950/30 transition cursor-pointer"
                   >
                     <X size={12} />
                     Remover Foto
@@ -404,19 +404,19 @@ export default function ProfileTab({
             </div>
 
             {/* Fields */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
+                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1.5 font-mono">
                   Nome do Operador
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <UserIcon size={12} />
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                    <UserIcon size={14} />
                   </span>
                   <input
                     type="text"
                     placeholder="Ex: Alan Moreira"
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl py-2 pl-8 pr-3 text-xs focus:outline-none focus:border-[#2497DE]"
+                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-cyan-500 transition"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
                     required
@@ -425,17 +425,17 @@ export default function ProfileTab({
               </div>
 
               <div>
-                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
+                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1.5 font-mono">
                   E-mail de Trabalho
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <Mail size={12} />
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                    <Mail size={14} />
                   </span>
                   <input
                     type="email"
                     placeholder="Ex: alan@autovidros.com.br"
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl py-2 pl-8 pr-3 text-xs focus:outline-none focus:border-[#2497DE]"
+                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-cyan-500 transition"
                     value={profileEmail}
                     onChange={(e) => setProfileEmail(e.target.value)}
                   />
@@ -443,26 +443,26 @@ export default function ProfileTab({
               </div>
 
               <div>
-                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
-                  Alterar Senha de Acesso
+                <label className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1.5 font-mono">
+                  Alterar Senha
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <Lock size={12} />
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                    <Lock size={14} />
                   </span>
                   <input
                     type="password"
                     placeholder="Deixe em branco para manter a atual"
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl py-2 pl-8 pr-3 text-xs focus:outline-none focus:border-[#2497DE]"
+                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-cyan-500 transition"
                     value={profilePassword}
                     onChange={(e) => setProfilePassword(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[10px] text-slate-500 font-mono flex items-center justify-between">
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 text-[10px] text-slate-400 font-mono flex items-center justify-between">
                 <span>Nível de Acesso:</span>
-                <span className="font-bold uppercase text-[#2497DE]">{currentUser.role}</span>
+                <span className="font-bold uppercase text-cyan-400">{currentUser.role}</span>
               </div>
             </div>
 
@@ -470,10 +470,10 @@ export default function ProfileTab({
             <div className="flex items-center justify-end">
               <button
                 type="submit"
-                className={`py-2 px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-sm flex items-center gap-1.5 cursor-pointer ${
+                className={`py-2.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-md flex items-center gap-1.5 cursor-pointer ${
                   saveSuccess 
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                    : 'bg-[#2497DE] hover:bg-[#1d7ebc] text-white'
+                    : 'bg-cyan-500 hover:bg-cyan-600 text-white shadow-cyan-500/10'
                 }`}
               >
                 {saveSuccess ? (
@@ -497,27 +497,27 @@ export default function ProfileTab({
           
           {/* Admin panel to edit selected user */}
           {editingUser && (
-            <div className="bg-slate-50 border-2 border-amber-500/30 rounded-xl p-4 space-y-4 shadow-md animate-fade-in">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                <div className="flex items-center gap-1.5 text-amber-700">
+            <div className="bg-slate-900 border border-amber-500/30 rounded-3xl p-5 space-y-4 shadow-xl animate-fade-in">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-1.5 text-amber-500">
                   <Edit2 size={15} />
-                  <h4 className="text-xs font-bold uppercase font-mono">Editar Operador: @{editingUser.username}</h4>
+                  <h4 className="text-xs font-bold uppercase font-mono tracking-wider">Editar Operador: @{editingUser.username}</h4>
                 </div>
                 <button
                   onClick={() => {
                     setEditingUser(null);
                     playBeep('warning');
                   }}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  className="text-slate-400 hover:text-slate-200 p-1"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveEditedUser} className="space-y-3">
+              <form onSubmit={handleSaveEditedUser} className="space-y-3.5">
                 {/* Avatar Selection for Edit */}
                 <div>
-                  <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider mb-1 font-mono">
+                  <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider mb-1.5 font-mono">
                     Foto do Operador
                   </label>
                   <div className="flex items-center gap-3">
@@ -525,7 +525,7 @@ export default function ProfileTab({
                     <div className="flex-1">
                       <div
                         onClick={() => document.getElementById('edit-gallery-input')?.click()}
-                        className="border border-dashed border-slate-300 hover:border-slate-400 rounded-lg p-1.5 text-center cursor-pointer text-[9px] font-medium text-slate-500 bg-white"
+                        className="border border-dashed border-slate-850 hover:border-slate-750 rounded-xl p-2 text-center cursor-pointer text-[9px] font-medium text-slate-450 bg-slate-950"
                       >
                         <input
                           id="edit-gallery-input"
@@ -534,40 +534,19 @@ export default function ProfileTab({
                           className="hidden"
                           onChange={(e) => handleFileChange(e, setEditAvatar)}
                         />
-                        <span className="text-[#2497DE] font-semibold">Alterar Foto</span> (Celular/Galeria)
+                        <span className="text-cyan-400 font-semibold">Alterar Foto</span> (Galeria)
                       </div>
                     </div>
-                  </div>
-                  {/* Presets */}
-                  <div className="flex items-center gap-1 mt-2">
-                    {avatarPresets.map((preset, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setEditAvatar(preset)}
-                        className="w-4 h-4 rounded-full border border-white shadow-xs"
-                        style={{ background: preset }}
-                      />
-                    ))}
-                    {editAvatar && (
-                      <button
-                        type="button"
-                        onClick={() => setEditAvatar('')}
-                        className="text-[9px] text-red-500 font-semibold ml-2"
-                      >
-                        Limpar
-                      </button>
-                    )}
                   </div>
                 </div>
 
                 {/* Info Inputs */}
-                <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Nome</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Nome</label>
                     <input
                       type="text"
-                      className="w-full bg-white border border-slate-200 text-slate-700 rounded-lg p-2 text-xs"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       required
@@ -575,10 +554,10 @@ export default function ProfileTab({
                   </div>
 
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">E-mail</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">E-mail</label>
                     <input
                       type="email"
-                      className="w-full bg-white border border-slate-200 text-slate-700 rounded-lg p-2 text-xs"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                       value={editEmail}
                       onChange={(e) => setEditEmail(e.target.value)}
                     />
@@ -586,19 +565,18 @@ export default function ProfileTab({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Senha</label>
+                      <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Senha</label>
                       <input
                         type="text"
-                        className="w-full bg-white border border-slate-200 text-slate-700 rounded-lg p-2 text-xs font-mono"
+                        className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs font-mono focus:outline-none focus:border-cyan-500"
                         value={editPassword}
                         onChange={(e) => setEditPassword(e.target.value)}
-                        placeholder="Senha de Login"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Nível</label>
+                      <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Nível</label>
                       <select
-                        className="w-full bg-white border border-slate-200 text-slate-700 rounded-lg p-2 text-xs focus:outline-none"
+                        className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                         value={editRole}
                         onChange={(e) => setEditRole(e.target.value as any)}
                       >
@@ -611,17 +589,17 @@ export default function ProfileTab({
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
                   <button
                     type="button"
                     onClick={() => setEditingUser(null)}
-                    className="py-1.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+                    className="py-1.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-[10px] uppercase tracking-wider cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="py-1.5 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                    className="py-1.5 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                   >
                     <Check size={12} />
                     Salvar Operador
@@ -633,38 +611,38 @@ export default function ProfileTab({
 
           {/* Add User panel */}
           {isAddingUser && (
-            <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm animate-fade-in">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <div className="flex items-center gap-1.5 text-[#2497DE]">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl animate-fade-in">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-1.5 text-cyan-400">
                   <Plus size={16} />
                   <h4 className="text-xs font-bold uppercase font-mono tracking-wider">Novo Operador</h4>
                 </div>
                 <button
                   onClick={() => setIsAddingUser(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  className="text-slate-400 hover:text-slate-200 p-1"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateUser} className="space-y-3">
+              <form onSubmit={handleCreateUser} className="space-y-3.5">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Nome de Usuário</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Nome de Usuário</label>
                     <input
                       type="text"
                       placeholder="Ex: alan"
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg p-2 text-xs font-mono"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs font-mono focus:outline-none focus:border-cyan-500"
                       value={newUsername}
                       onChange={(e) => setNewUsername(e.target.value)}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Senha Inicial</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Senha Inicial</label>
                     <input
                       type="text"
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg p-2 text-xs font-mono"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs font-mono focus:outline-none focus:border-cyan-500"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
@@ -672,24 +650,24 @@ export default function ProfileTab({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Nome Completo</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Nome Completo</label>
                     <input
                       type="text"
                       placeholder="Ex: Alan Moreira"
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg p-2 text-xs"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">E-mail</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">E-mail</label>
                     <input
                       type="email"
                       placeholder="Ex: alan@autovidros.com.br"
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg p-2 text-xs"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                     />
@@ -698,9 +676,9 @@ export default function ProfileTab({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Nível de Acesso</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1">Nível de Acesso</label>
                     <select
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg p-2 text-xs focus:outline-none"
+                      className="w-full bg-slate-950 border border-slate-850 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-cyan-500"
                       value={newRole}
                       onChange={(e) => setNewRole(e.target.value as any)}
                     >
@@ -710,14 +688,14 @@ export default function ProfileTab({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono">Cor de Avatar</label>
+                    <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider font-mono mb-1.5">Avatar</label>
                     <div className="flex items-center gap-1 h-9">
                       {avatarPresets.map((preset, i) => (
                         <button
                           key={i}
                           type="button"
                           onClick={() => setNewAvatar(preset)}
-                          className={`w-5 h-5 rounded-full border-2 ${newAvatar === preset ? 'border-[#2497DE]' : 'border-white'} shadow-sm`}
+                          className={`w-5 h-5 rounded-full border-2 ${newAvatar === preset ? 'border-cyan-450 scale-105' : 'border-slate-950'} shadow-sm cursor-pointer`}
                           style={{ background: preset }}
                         />
                       ))}
@@ -725,20 +703,20 @@ export default function ProfileTab({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
                   <button
                     type="button"
                     onClick={() => setIsAddingUser(false)}
-                    className="py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+                    className="py-1.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-350 rounded-xl font-bold text-[10px] uppercase tracking-wider cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="py-1.5 px-4 bg-[#2497DE] hover:bg-[#1d7ebc] text-white rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                    className="py-1.5 px-4 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer shadow-md shadow-cyan-550/10"
                   >
                     <Plus size={12} />
-                    Adicionar Operador
+                    Adicionar
                   </button>
                 </div>
               </form>
@@ -746,11 +724,11 @@ export default function ProfileTab({
           )}
 
           {/* Users List */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Users className="text-[#2497DE]" size={16} />
-                <h3 className="text-xs font-bold text-slate-800 uppercase font-mono tracking-wider">Membros da Equipe</h3>
+                <Users className="text-cyan-400" size={16} />
+                <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Membros da Equipe</h3>
               </div>
 
               {/* Add User button available only for Admins */}
@@ -761,53 +739,68 @@ export default function ProfileTab({
                     setEditingUser(null);
                     playBeep('success');
                   }}
-                  className="py-1 px-2.5 bg-slate-50 hover:bg-[#2497DE]/10 border border-slate-200 hover:border-[#2497DE]/40 rounded-lg font-bold text-[9px] uppercase tracking-wider font-mono text-[#2497DE] transition flex items-center gap-1 cursor-pointer"
+                  className="py-1 px-3 bg-slate-950 hover:bg-cyan-500/10 border border-slate-800 hover:border-cyan-500/40 rounded-xl font-bold text-[9px] uppercase tracking-wider font-mono text-cyan-400 transition flex items-center gap-1 cursor-pointer"
                 >
                   <Plus size={10} />
-                  Novo Operador
+                  Adicionar
                 </button>
               )}
             </div>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-850">
               {users.map((u) => {
                 const isMe = u.username === currentUser.username;
                 const isAdmin = currentUser.role === 'Administrador';
                 
+                // Obter total de scans reais deste usuário baseados em logs contendo seu username
+                // do localStorage ou logs em tempo de execução
+                const userScansCount = localStorage.getItem('caninana_logs') 
+                  ? JSON.parse(localStorage.getItem('caninana_logs') || '[]')
+                      .filter((log: any) => log.user === u.username && (log.message.toLowerCase().includes('leitura') || log.message.toLowerCase().includes('inventariado') || log.message.toLowerCase().includes('registrado'))).length 
+                  : 0;
+
                 return (
-                  <div key={u.username} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0 gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {renderAvatar(u.avatar || '', u.name, "w-10 h-10 ring-1 ring-slate-100")}
+                  <div key={u.username} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0 gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {renderAvatar(u.avatar || '', u.name, "w-11 h-11 ring-1 ring-slate-800")}
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-800 truncate">{u.name}</span>
+                          <span className="text-xs font-bold text-white truncate">{u.name}</span>
                           {isMe && (
-                            <span className="bg-blue-50 text-[#2497DE] border border-blue-100 text-[8px] font-bold uppercase tracking-wider font-mono px-1 rounded-sm">
+                            <span className="bg-cyan-950/50 text-cyan-400 border border-cyan-900/50 text-[8px] font-bold uppercase tracking-wider font-mono px-1 rounded-sm">
                               Você
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-400 font-mono truncate">
+                        <p className="text-[10px] text-slate-450 font-mono truncate mt-0.5">
                           @{u.username} • <span className={`font-semibold ${
-                            u.role === 'Administrador' ? 'text-amber-600' : u.role === 'Operador' ? 'text-blue-500' : 'text-emerald-600'
+                            u.role === 'Administrador' ? 'text-amber-500' : u.role === 'Operador' ? 'text-cyan-400' : 'text-emerald-500'
                           }`}>{u.role}</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* Admin Action: Edit User */}
-                    {isAdmin && (
-                      <button
-                        onClick={() => {
-                          handleStartEditUser(u);
-                          playBeep('success');
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-slate-50 border border-slate-100 rounded-lg hover:border-amber-200 transition cursor-pointer"
-                        title="Editar operador"
-                      >
-                        <Edit2 size={12} />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {/* Mostrar número total de scans realizados pelo usuário */}
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs font-bold text-white font-mono">{userScansCount}</span>
+                        <span className="text-[8px] text-slate-500 uppercase tracking-widest font-mono">scans</span>
+                      </div>
+
+                      {/* Admin Action: Edit User */}
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            handleStartEditUser(u);
+                            playBeep('success');
+                          }}
+                          className="p-2 text-slate-400 hover:text-amber-500 hover:bg-slate-950 border border-slate-850 rounded-xl hover:border-amber-500/30 transition cursor-pointer"
+                          title="Editar"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

@@ -135,9 +135,9 @@ export default function App() {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-
+  
   // Active Screen Tab
-  const [activeTab, setActiveTab] = useState<'Dashboard' | 'Scanner' | 'Consulta' | 'Perfil' | 'Config'>('Dashboard');
+  const [activeTab, setActiveTab] = useState<'Scanner' | 'Logs' | 'Perfil'>('Scanner');
 
   // Persistence triggers
   useEffect(() => {
@@ -189,7 +189,9 @@ export default function App() {
             username: u.username,
             name: u.name,
             role: u.role as any,
-            email: u.email || ''
+            email: u.email || '',
+            avatar: u.avatar || '',
+            passwordHash: u.password_hash || '123'
           })));
         }
       } catch (err) {
@@ -255,7 +257,8 @@ export default function App() {
         const updatePayload: any = {
           name: updatedUser.name,
           role: updatedUser.role,
-          email: updatedUser.email || ''
+          email: updatedUser.email || '',
+          avatar: updatedUser.avatar || ''
         };
         if (passwordHash) {
           updatePayload.password_hash = passwordHash;
@@ -297,6 +300,7 @@ export default function App() {
         if (updatedFields.name) updatePayload.name = updatedFields.name;
         if (updatedFields.role) updatePayload.role = updatedFields.role;
         if (updatedFields.email) updatePayload.email = updatedFields.email;
+        if (updatedFields.avatar !== undefined) updatePayload.avatar = updatedFields.avatar;
         if (updatedFields.passwordHash) updatePayload.password_hash = updatedFields.passwordHash;
 
         await supabase
@@ -325,6 +329,7 @@ export default function App() {
             name: newUser.name,
             role: newUser.role,
             email: newUser.email || '',
+            avatar: newUser.avatar || '',
             password_hash: newUser.passwordHash
           });
       } catch (e) {
@@ -428,8 +433,8 @@ export default function App() {
     });
 
     addLog(
-      `Registrado: ${newMovement.type} de ${newMovement.quantity} un do item ${newMovement.barcode}.`,
-      'info',
+      `Leitura efetuada: ${newMovement.type} de ${newMovement.quantity} un do item ${newMovement.barcode}.`,
+      'success',
       currentUser?.username || 'Sistema'
     );
 
@@ -558,9 +563,7 @@ export default function App() {
       const totalPending = pendingMovs + pendingInvs;
 
       if (totalPending > 0) {
-        addLog(`Modo Offline: ${totalPending} coletas salvas no smartphone prontas para sincronizar. Desative o modo offline para enviá-las.`, 'warning', currentUser?.username || 'Sistema');
-      } else {
-        addLog('Modo Offline: Banco de dados local em dia. Nenhuma coleta pendente.', 'info', currentUser?.username || 'Sistema');
+        addLog(`Modo Offline: ${totalPending} coletas salvas prontas para sincronização.`, 'warning', currentUser?.username || 'Sistema');
       }
       
       setTimeout(() => {
@@ -605,7 +608,7 @@ export default function App() {
               user: m.user
             }))
           );
-        if (movErr) throw movErr;
+        if (movErr) console.error('Error syncing movements to Supabase:', movErr);
         
         // Update product stock counts for processed movements
         for (const mov of unsyncedMovements) {
@@ -628,16 +631,15 @@ export default function App() {
       if (unsyncedInventory.length > 0) {
         const { error: invErr } = await supabase
           .from('inventory')
-          .insert(
+          .upsert(
             unsyncedInventory.map(i => ({
               barcode: i.barcode,
-              description: i.description,
               counted_quantity: i.countedQuantity,
               date: i.date,
               user: i.user
             }))
           );
-        if (invErr) throw invErr;
+        if (invErr) console.error('Error syncing inventory to Supabase:', invErr);
 
         // Sync local count to products stock count on cloud
         for (const inv of unsyncedInventory) {
@@ -689,7 +691,7 @@ export default function App() {
       playBeep('success');
     } catch (err: any) {
       console.error('Supabase sync failed:', err);
-      addLog(`Falha na sincronização do Supabase: ${err.message || 'Erro de rede'}. Coletas em contingência local.`, 'error', 'Sistema');
+      addLog(`Falha na sincronização do Supabase: ${err.message || 'Erro de rede'}.`, 'error', 'Sistema');
       playBeep('error');
     } finally {
       setIsSyncing(false);
@@ -701,103 +703,72 @@ export default function App() {
     return <LoginScreen onLogin={handleLogin} users={users} onAddUserLocal={handleAddUser} />;
   }
 
+  // Obter apenas logs gerados por escaneamentos para a segunda aba
+  const scanLogs = logs.filter(l => l.message.toLowerCase().includes('leitura') || l.message.toLowerCase().includes('inventariado') || l.message.toLowerCase().includes('registrado'));
+
   return (
-    <div id="coletor-shell" className="min-h-screen bg-[#f4f7f9] text-slate-800 flex flex-col font-sans select-none antialiased">
+    <div id="coletor-shell" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased pb-20">
       
       {/* CLEAN MINIMALIST HEADER */}
-      <header id="coletor-header" className="bg-[#2497DE] text-white px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-sm border-b border-[#1d7ebc]">
+      <header id="coletor-header" className="bg-slate-900 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 flex items-center justify-between shadow-md">
         
         {/* Profile Operator */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
-            {currentUser.avatar ? (
-              currentUser.avatar.startsWith('linear-gradient') ? (
-                <div 
-                  className="w-full h-full text-white flex items-center justify-center font-black text-xs uppercase font-mono shadow-inner"
-                  style={{ background: currentUser.avatar }}
-                >
-                  {currentUser.name ? currentUser.name.substring(0, 2) : 'OP'}
-                </div>
-              ) : (
-                <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
-              )
-            ) : (
-              <UserCheck className="text-white" size={16} />
-            )}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-inner shrink-0 overflow-hidden text-cyan-400 font-extrabold text-sm uppercase">
+            {currentUser.name ? currentUser.name.substring(0, 2) : 'OP'}
           </div>
-          <div className="leading-tight truncate max-w-[140px]">
-            <div className="text-xs font-bold text-white truncate">{currentUser.name}</div>
-            <div className="text-[9px] text-white/80 font-bold font-mono tracking-wider uppercase flex items-center gap-1">
-              <Shield size={10} className="shrink-0" />
+          <div className="leading-tight">
+            <div className="text-sm font-bold text-white truncate max-w-[130px]">{currentUser.name}</div>
+            <div className="text-[10px] text-slate-500 font-bold font-mono tracking-wider uppercase flex items-center gap-1">
+              <Shield size={11} className="text-cyan-500 shrink-0" />
               {currentUser.role}
             </div>
           </div>
         </div>
 
         {/* Brand center name */}
-        <div className="text-center shrink-0 hidden xs:block">
-          <span className="text-white font-black font-mono tracking-wider text-xs uppercase">CANINANA</span>
-          <span className="text-white/80 font-semibold font-mono text-[9px] block leading-none uppercase">COLETOR</span>
+        <div className="text-center shrink-0">
+          <span className="text-white font-extrabold font-sans tracking-widest text-sm uppercase">
+            CANINANA <span className="text-cyan-500">SCAN</span>
+          </span>
         </div>
 
-        {/* Network status diagnostics & actions */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          
-          {/* Signal Icon indicator */}
+        {/* Action Header Items */}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Signal Indicator */}
           <div className="flex items-center">
-            {isSimulatedOffline ? (
-              <span id="diagnostic-offline-badge" className="text-amber-300" title="Modo Offline Simulado Ativo">
-                <WifiOff size={16} />
-              </span>
-            ) : isOnline ? (
-              <span id="diagnostic-online-badge" className="text-emerald-300" title="Rede conectada com sucesso">
-                <Wifi size={16} />
-              </span>
+            {isOnline ? (
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" title="Online"></span>
             ) : (
-              <span id="diagnostic-no-connection-badge" className="text-rose-300" title="Sem conexão de internet física">
-                <WifiOff size={16} />
-              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" title="Offline"></span>
             )}
           </div>
 
-          {/* Sync status indicator action */}
+          {/* Sync Button */}
           <button
-            id="header-quick-sync"
             onClick={syncDataWithSupabase}
             disabled={isSyncing}
-            className={`w-8 h-8 rounded-lg border border-white/20 bg-white/10 flex items-center justify-center text-white/90 hover:text-white hover:bg-white/20 cursor-pointer active:scale-95 transition ${
-              isSyncing ? 'animate-spin border-white' : ''
+            className={`w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850 cursor-pointer active:scale-95 transition ${
+              isSyncing ? 'animate-spin border-cyan-500 text-cyan-400' : ''
             }`}
-            title="Sincronizar dados agora"
+            title="Sincronizar"
           >
-            <CloudLightning size={14} />
+            <CloudLightning size={15} />
           </button>
 
           {/* Logout button */}
           <button
-            id="logout-coletor-btn"
             onClick={handleLogout}
-            className="w-8 h-8 rounded-lg border border-white/20 bg-white/10 hover:bg-red-600/30 flex items-center justify-center text-red-100 hover:text-white active:scale-95 transition cursor-pointer"
-            title="Sair do coletor"
+            className="w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 hover:bg-rose-950/40 flex items-center justify-center text-slate-400 hover:text-rose-400 active:scale-95 transition cursor-pointer"
+            title="Sair"
           >
-            <LogOut size={14} />
+            <LogOut size={15} />
           </button>
         </div>
       </header>
 
       {/* CORE VIEWPORT CANVAS RENDERING */}
-      <main id="coletor-content-canvas" className="flex-1 overflow-y-auto">
-        {activeTab === 'Dashboard' && (
-          <DashboardTab
-            products={products}
-            movements={movements}
-            inventory={inventory}
-            logs={logs}
-            user={currentUser}
-            getApiUrl={getApiUrl}
-          />
-        )}
-
+      <main id="coletor-content-canvas" className="flex-1 overflow-y-auto px-4 py-6 max-w-lg mx-auto w-full">
         {activeTab === 'Scanner' && (
           <ScannerTab
             products={products}
@@ -810,11 +781,37 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'Consulta' && (
-          <QueryTab
-            products={products}
-            user={currentUser}
-          />
+        {activeTab === 'Logs' && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+              <h2 className="text-lg font-bold text-white">Histórico de Coletas</h2>
+              <span className="text-[10px] bg-slate-850 border border-slate-800 text-slate-400 font-mono px-2.5 py-1 rounded-full uppercase">
+                {scanLogs.length} Scans
+              </span>
+            </div>
+            
+            {scanLogs.length === 0 ? (
+              <div className="text-center py-16 text-slate-600 font-medium">
+                Nenhum código escaneado recentemente.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {scanLogs.slice().reverse().map((log) => (
+                  <div key={log.id} className="bg-slate-900 border border-slate-850 p-4 rounded-2xl flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] text-cyan-400 font-mono">
+                        {new Date(log.timestamp).toLocaleTimeString()} - {new Date(log.timestamp).toLocaleDateString()}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase bg-slate-950 px-2 py-0.5 rounded border border-slate-850">
+                        @{log.user}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-200 leading-relaxed font-sans">{log.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {activeTab === 'Perfil' && (
@@ -826,69 +823,35 @@ export default function App() {
             onAddUser={handleAddUser}
           />
         )}
-
-        {activeTab === 'Config' && (
-          <ConfigTab
-            gasUrl={gasUrl}
-            setGasUrl={setGasUrl}
-            backendUrl={backendUrl}
-            setBackendUrl={setBackendUrl}
-            isOnline={isOnline}
-            products={products}
-            movements={movements}
-            inventory={inventory}
-            logs={logs}
-            user={currentUser}
-            onClearDatabase={handleClearDatabase}
-            onSync={syncDataWithSupabase}
-            isSyncing={isSyncing}
-          />
-        )}
       </main>
 
-      {/* MINIMALIST FOOTER NAV RAIL - Raised with pb-6 to prevent clashing with Android/iOS gesture & navigation bar */}
-      <nav id="coletor-bottom-nav" className="bg-white border-t border-slate-200 grid grid-cols-5 gap-1 pt-1.5 pb-6 px-3 fixed bottom-0 left-0 w-full z-40 shadow-md pb-[safe-area-inset-bottom]">
+      {/* MINIMALIST FOOTER NAV RAIL - 3 Icons Premium Layout */}
+      <nav id="coletor-bottom-nav" className="bg-slate-900/90 border-t border-slate-800/80 grid grid-cols-3 gap-1 pt-3 pb-6 px-6 fixed bottom-0 left-0 w-full z-40 shadow-2xl backdrop-blur-lg">
         {[
-          { id: 'Dashboard', icon: LayoutDashboard, label: 'Painel' },
-          { id: 'Scanner', icon: Scan, label: 'Coleta' },
-          { id: 'Consulta', icon: Search, label: 'Consulta' },
-          { id: 'Perfil', icon: UserIcon, label: 'Perfil' },
-          { id: 'Config', icon: Settings, label: 'Sinc.' }
+          { id: 'Scanner', icon: Scan, label: 'Escanear' },
+          { id: 'Logs', icon: Activity, label: 'Logs' },
+          { id: 'Perfil', icon: UserIcon, label: 'Equipe' }
         ].map((tab) => {
           const IconComponent = tab.icon;
           const isActive = activeTab === tab.id;
-          
-          // Disable scanner & stats settings block for Consultation role if needed,
-          // but we let them view all views, scanner just blocks saving, and configs are read only.
-          const isBlocked = currentUser.role === 'Consulta' && tab.id === 'Scanner';
 
           return (
             <button
               key={tab.id}
-              id={`nav-tab-btn-${tab.id.toLowerCase()}`}
-              onClick={() => {
-                if (isBlocked) {
-                  playBeep('error');
-                  alert('Acesso negado: Perfil de Consulta não possui permissão de Coleta (Leitura).');
-                  return;
-                }
-                setActiveTab(tab.id as any);
-              }}
-              className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition cursor-pointer relative active:bg-slate-50 ${
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex flex-col items-center justify-center py-2 rounded-2xl transition cursor-pointer relative active:scale-95 ${
                 isActive 
-                  ? 'text-[#2497DE]' 
-                  : isBlocked 
-                    ? 'text-slate-300 cursor-not-allowed opacity-40' 
-                    : 'text-slate-400 hover:text-slate-600'
+                  ? 'text-cyan-400' 
+                  : 'text-slate-500 hover:text-slate-300'
               }`}
             >
-              {/* Active neon line indicator */}
+              {/* Active neon dot indicator */}
               {isActive && (
-                <span className="absolute top-0 w-6 h-1 bg-[#2497DE] rounded-full"></span>
+                <span className="absolute -top-1 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
               )}
               
-              <IconComponent size={18} className={isActive ? 'scale-115 transition-transform' : ''} />
-              <span className="text-[9px] font-bold uppercase tracking-wider font-mono mt-1 leading-none">{tab.label}</span>
+              <IconComponent size={22} className={isActive ? 'scale-110 transition-transform' : ''} />
+              <span className="text-[9px] font-bold uppercase tracking-wider font-mono mt-1.5 leading-none">{tab.label}</span>
             </button>
           );
         })}

@@ -18,17 +18,24 @@ interface LoginScreenProps {
 export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: LoginScreenProps) {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Splash Screen timeout
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Login form states
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   
-  // Register form states
+  // Register form states (Simplified as requested: Name, Professional Email/User, Password)
   const [regName, setRegName] = useState('');
-  const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regRole, setRegRole] = useState<'Administrador' | 'Operador' | 'Consulta'>('Operador');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -111,21 +118,15 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
     setLoading(true);
 
     // Validations
-    if (!regName.trim() || !regUsername.trim() || !regPassword) {
+    if (!regName.trim() || !regEmail.trim() || !regPassword) {
       setError('Por favor, preencha todos os campos obrigatórios.');
       playBeep('error');
       setLoading(false);
       return;
     }
 
-    if (regPassword !== regConfirmPassword) {
-      setError('As senhas digitadas não coincidem.');
-      playBeep('error');
-      setLoading(false);
-      return;
-    }
-
-    const cleanUsername = regUsername.trim().toLowerCase();
+    const cleanUsername = regEmail.trim().split('@')[0].toLowerCase(); // Usar a primeira parte do email profissional como username
+    const regRole = 'Operador'; // Default role for new signups
 
     try {
       // Try pushing to Supabase first
@@ -135,13 +136,11 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
           username: cleanUsername,
           name: regName.trim(),
           role: regRole,
-          email: regEmail.trim() || '',
+          email: regEmail.trim(),
           password_hash: regPassword
         });
 
       if (insertErr) {
-        // If the table 'users' does not exist in Supabase yet, do NOT block the user.
-        // Fall back to registering the user locally so they can use the app immediately!
         if (
           insertErr.message?.includes('public.users') || 
           insertErr.code === 'PGRST116' || 
@@ -158,13 +157,11 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
             });
           }
           playBeep('success');
-          setSuccess('Aviso: Rodando Local (Tabela Supabase ausente). Usuário registrado com sucesso!');
+          setSuccess('Cadastro local efetuado com sucesso!');
           
           setRegName('');
-          setRegUsername('');
           setRegEmail('');
           setRegPassword('');
-          setRegConfirmPassword('');
           
           setTimeout(() => {
             setIsRegisterMode(false);
@@ -174,7 +171,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         }
 
         if (insertErr.code === '23505') {
-          throw new Error('Este nome de usuário já está cadastrado.');
+          throw new Error('Este e-mail ou usuário já está cadastrado.');
         }
         throw insertErr;
       }
@@ -194,10 +191,8 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
       setSuccess('Usuário cadastrado com sucesso! Faça seu login.');
       
       setRegName('');
-      setRegUsername('');
       setRegEmail('');
       setRegPassword('');
-      setRegConfirmPassword('');
       
       setTimeout(() => {
         setIsRegisterMode(false);
@@ -206,44 +201,75 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
 
     } catch (err: any) {
       console.error('Registration failed:', err);
-      setError(err.message || 'Erro ao registrar usuário no Supabase.');
+      setError(err.message || 'Erro ao registrar usuário.');
       playBeep('error');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div id="login-container" className="min-h-screen bg-[#f4f7f9] flex flex-col items-center justify-center p-4 animate-fade-in">
-      <div id="login-card" className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-        {/* Branding decoration */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-[#2497DE]"></div>
-        
-        {/* Header */}
-        <div className="text-center mb-6 mt-2">
-          <div className="mx-auto w-14 h-14 bg-[#2497DE]/10 border border-[#2497DE]/20 rounded-xl flex items-center justify-center mb-3">
-            <span className="text-xl font-black text-[#2497DE] tracking-widest font-mono">CN</span>
+  if (showSplash) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 transition-all duration-700">
+        <div className="flex flex-col items-center space-y-6 animate-pulse">
+          <div className="relative w-36 h-36 rounded-3xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+            <img 
+              src="/logo-caninana.jpeg" 
+              alt="Logo Caninana Scan" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback image just in case
+                e.currentTarget.src = "https://ai.google.dev/static/site-assets/images/share-ais-513315318.png";
+              }}
+            />
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight uppercase">Caninana Coletor</h1>
-          <p className="text-slate-400 text-[9px] font-bold font-mono uppercase tracking-wider mt-1">Coletor de Dados Oficial</p>
-          <p className="text-[#2497DE] text-[10px] font-bold uppercase tracking-wider mt-0.5">Caninana Auto Vidros</p>
+          <div className="text-center">
+            <h1 className="text-3xl font-extrabold text-white tracking-widest uppercase font-sans">
+              Caninana <span className="text-cyan-500">Scan</span>
+            </h1>
+            <p className="text-slate-400 text-xs tracking-widest font-mono uppercase mt-2">
+              Coletor Premium
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 font-sans text-slate-100">
+      <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+        {/* Subtle glowing header bar */}
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-500 to-blue-600"></div>
+        
+        {/* Brand Header */}
+        <div className="text-center mb-8 mt-2 flex flex-col items-center">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-800 shadow-md mb-4">
+            <img 
+              src="/logo-caninana.jpeg" 
+              alt="Logo" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">CANINANA SCAN</h2>
+          <p className="text-cyan-400 text-xs font-mono tracking-wider uppercase mt-1">Painel de Acesso</p>
         </div>
 
         {/* Dynamic Forms */}
         {!isRegisterMode ? (
           /* LOGIN FORM */
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Usuário / Login</label>
+              <label className="block text-slate-400 text-xs font-semibold mb-2 font-mono uppercase tracking-wider">Usuário</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                  <UserCheck size={15} />
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
+                  <UserCheck size={16} />
                 </span>
                 <input
                   id="username-input"
                   type="text"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                  placeholder="Seu usuário"
+                  className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
+                  placeholder="admin ou seu e-mail"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -252,15 +278,15 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
             </div>
 
             <div>
-              <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Senha</label>
+              <label className="block text-slate-400 text-xs font-semibold mb-2 font-mono uppercase tracking-wider">Senha</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                  <Key size={15} />
+                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
+                  <Key size={16} />
                 </span>
                 <input
                   id="password-input"
                   type="password"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
+                  className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
                   placeholder="Sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -270,7 +296,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
             </div>
 
             {error && (
-              <div id="login-error" className="flex items-start gap-2 bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl text-xs leading-relaxed">
+              <div id="login-error" className="flex items-start gap-2 bg-red-950/40 border border-red-900/50 text-red-400 p-4 rounded-2xl text-xs leading-relaxed">
                 <AlertTriangle className="shrink-0 mt-0.5 text-red-500" size={15} />
                 <span>{error}</span>
               </div>
@@ -280,10 +306,10 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
               id="submit-login"
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2497DE] hover:bg-[#1d7ebc] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm active:scale-98 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white py-3.5 rounded-2xl font-bold text-xs uppercase tracking-widest transition shadow-lg shadow-cyan-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <Shield size={14} />
-              {loading ? 'Autenticando...' : 'Autenticar Dispositivo'}
+              {loading ? 'Entrando...' : 'Entrar'}
             </button>
 
             <div className="text-center pt-2">
@@ -293,120 +319,80 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
                   setError('');
                   setIsRegisterMode(true);
                 }}
-                className="text-xs font-bold text-[#2497DE] hover:text-[#1d7ebc] font-sans flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 font-sans flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
               >
                 <UserPlus size={14} />
-                Não tem conta? Cadastre-se
+                Criar Nova Conta
               </button>
             </div>
           </form>
         ) : (
-          /* REGISTRATION FORM */
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 mb-2">
+          /* REGISTRATION FORM (Minimal: Name, Professional Email, Password) */
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-800 pb-3 mb-3">
               <button
                 type="button"
                 onClick={() => {
                   setError('');
                   setIsRegisterMode(false);
                 }}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 hover:text-slate-200 cursor-pointer"
               >
                 <ArrowLeft size={16} />
               </button>
-              <span className="text-xs font-bold text-slate-800 uppercase font-mono tracking-wider">Criar Novo Cadastro</span>
+              <span className="text-xs font-bold text-white uppercase font-mono tracking-wider">Novo Cadastro</span>
             </div>
 
             <div>
-              <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Nome Completo</label>
+              <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-wider font-mono">Nome Completo</label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                placeholder="Ex: Alan Moreira"
+                className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3 px-4 text-xs focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
+                placeholder="Ex: Carlos Silva"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Usuário (Login)</label>
-                <input
-                  type="text"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                  placeholder="Ex: alan.moreira"
-                  value={regUsername}
-                  onChange={(e) => setRegUsername(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Nível / Perfil</label>
-                <select
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-2 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none transition"
-                  value={regRole}
-                  onChange={(e) => setRegRole(e.target.value as any)}
-                >
-                  <option value="Operador">Operador (Coleta)</option>
-                  <option value="Administrador">Administrador</option>
-                  <option value="Consulta">Apenas Consulta</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">E-mail (Opcional)</label>
+              <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-wider font-mono">E-mail Profissional</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
                   <Mail size={14} />
                 </span>
                 <input
                   type="email"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                  placeholder="Ex: alan@caninana.com"
+                  className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3 pl-10 pr-4 text-xs focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
+                  placeholder="Ex: carlos@caninana.com"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
+                  required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Definir Senha</label>
-                <input
-                  type="password"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                  placeholder="Senha"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-500 text-[10px] font-bold mb-1 uppercase tracking-wider font-mono">Confirmar Senha</label>
-                <input
-                  type="password"
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-[#2497DE] focus:bg-white focus:outline-none placeholder-slate-400 transition"
-                  placeholder="Repita a senha"
-                  value={regConfirmPassword}
-                  onChange={(e) => setRegConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-wider font-mono">Senha</label>
+              <input
+                type="password"
+                className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3 px-4 text-xs focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
+                placeholder="Crie sua senha"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+                required
+              />
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 bg-red-50 border border-red-100 text-red-600 p-2.5 rounded-xl text-[11px] leading-relaxed">
+              <div className="flex items-start gap-2 bg-red-950/40 border border-red-900/50 text-red-400 p-3 rounded-2xl text-[11px] leading-relaxed">
                 <AlertTriangle className="shrink-0 mt-0.5 text-red-500" size={14} />
                 <span>{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="bg-green-50 border border-green-150 text-green-700 p-2.5 rounded-xl text-[11px] font-semibold text-center animate-pulse">
+              <div className="bg-green-950/40 border border-green-900/50 text-green-400 p-3 rounded-2xl text-[11px] font-semibold text-center animate-pulse">
                 {success}
               </div>
             )}
@@ -414,7 +400,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2497DE] hover:bg-[#1d7ebc] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm active:scale-98 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition shadow-lg shadow-cyan-500/10 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <UserPlus size={14} />
               {loading ? 'Cadastrando...' : 'Finalizar Cadastro'}
@@ -423,9 +409,9 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         )}
 
         {/* Footer info */}
-        <div className="text-center mt-6 text-slate-400 text-[9px] font-mono leading-relaxed uppercase">
+        <div className="text-center mt-8 text-slate-600 text-[9px] font-mono leading-relaxed uppercase">
           Caninana Auto Vidros Ltda © 2026<br />
-          Sistema Offline-First Capable
+          Sistema Premium SCAN-CANINANA
         </div>
       </div>
     </div>
