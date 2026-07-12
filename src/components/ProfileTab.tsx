@@ -355,7 +355,14 @@ export default function ProfileTab({
               <div className="flex flex-col items-center justify-center py-2">
                 {/* Clickable Circle Avatar preview */}
                 <div 
-                  onClick={() => document.getElementById('my-gallery-input')?.click()}
+                  onClick={() => {
+                    const el = document.getElementById('my-gallery-input');
+                    if (el) {
+                      el.setAttribute('capture', ''); // Resets capture to allow gallery
+                      el.removeAttribute('capture');
+                      el.click();
+                    }
+                  }}
                   className="shrink-0 relative group cursor-pointer active:scale-95 transition"
                 >
                   <input
