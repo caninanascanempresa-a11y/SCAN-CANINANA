@@ -171,7 +171,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     setPendingScan(code);
   };
 
-  const confirmPendingScan = () => {
+  const confirmPendingScan = async () => {
     if (!pendingScan) return;
     const code = pendingScan;
     setPendingScan(null);
@@ -179,7 +179,37 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     setFlashSuccess(true);
     setTimeout(() => setFlashSuccess(false), 300);
 
-    const product = products.find((p) => p.barcode === code);
+    let product = products.find((p) => p.barcode === code);
+
+    // Se o produto não for encontrado localmente, fazer busca rápida direta na planilha via API JSON
+    if (!product && navigator.onLine) {
+      try {
+        const googleUrl = `https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/gviz/tq?tqx=out:json&sheet=CADASTRO%20PRODUTOS&tq=select%20A,B,C,D%20where%20A%20=%20'${code}'`;
+        const res = await fetch(googleUrl);
+        const text = await res.text();
+        const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/);
+        if (match && match[1]) {
+          const json = JSON.parse(match[1]);
+          const rows = json.table.rows;
+          if (rows && rows.length > 0) {
+            const r = rows[0].c;
+            const fetchedProduct: Product = {
+              barcode: code,
+              description: r[1] ? String(r[1].v) : `Peça EAN ${code}`,
+              category: r[2] ? String(r[2].v) : 'Geral',
+              application: r[3] ? String(r[3].v) : '',
+              stock: 0,
+              minStock: 3
+            };
+            // Cadastrar produto localmente na mesma hora para futuras buscas
+            onAddProduct(fetchedProduct);
+            product = fetchedProduct;
+          }
+        }
+      } catch (err) {
+        console.error('Busca rápida direta na planilha falhou:', err);
+      }
+    }
 
     if (isContinuous) {
       if (product) {
