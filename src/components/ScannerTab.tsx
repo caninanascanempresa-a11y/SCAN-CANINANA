@@ -56,6 +56,9 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
   // Animation visual feedback
   const [flashSuccess, setFlashSuccess] = useState(false);
   const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  
+  // Pending confirm scan state
+  const [pendingScan, setPendingScan] = useState<string | null>(null);
 
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
   const scannerId = 'html5-qrcode-scanner-viewport';
@@ -143,6 +146,23 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       return;
     }
 
+    // Play initial notification sounds
+    const product = products.find((p) => p.barcode === code);
+    if (product) {
+      playBeep('success');
+    } else {
+      playBeep('error');
+    }
+
+    // Set pending confirmation scan code to prompt user
+    setPendingScan(code);
+  };
+
+  const confirmPendingScan = () => {
+    if (!pendingScan) return;
+    const code = pendingScan;
+    setPendingScan(null);
+
     setFlashSuccess(true);
     setTimeout(() => setFlashSuccess(false), 300);
 
@@ -150,11 +170,9 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
     if (isContinuous) {
       if (product) {
-        playBeep('success');
         setNotification({ text: `Parabéns ${user.name}, seu scan de ${product.description.substring(0, 18)}... foi realizado com sucesso!`, type: 'success' });
         commitScan(code, product, 1);
       } else {
-        playBeep('error');
         setNotification({ text: `Erro: Produto não encontrado!`, type: 'error' });
         setScannedBarcode(code);
         setMatchedProduct(null);
@@ -164,10 +182,8 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       }
     } else {
       if (product) {
-        playBeep('success');
         setNotification({ text: `Parabéns ${user.name}, seu scan de ${product.description.substring(0, 18)}... foi realizado com sucesso!`, type: 'success' });
       } else {
-        playBeep('error');
         setNotification({ text: `Erro: Produto não encontrado!`, type: 'error' });
       }
       setScannedBarcode(code);
@@ -327,6 +343,50 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         {/* Full Green Glow Overlay when Scanned Successfully */}
         {flashSuccess && (
           <div className="absolute inset-0 bg-emerald-500/20 mix-blend-screen z-20 pointer-events-none animate-ping duration-300"></div>
+        )}
+
+        {/* Modal Confirmação de Scan */}
+        {pendingScan && (
+          <div className="absolute inset-0 z-40 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-400 mb-4 animate-bounce">
+              <Scan size={30} />
+            </div>
+            <h3 className="text-white text-md font-bold font-sans">Confirmar Escaneamento?</h3>
+            <p className="text-slate-400 text-xs mt-1.5 max-w-[200px] leading-relaxed">
+              Código detectado: <span className="text-cyan-400 font-mono font-bold block mt-0.5">{pendingScan}</span>
+            </p>
+            
+            {/* Exibe o nome do produto se encontrado */}
+            {(() => {
+              const prod = products.find(p => p.barcode === pendingScan);
+              return prod ? (
+                <span className="text-[10px] bg-slate-900 border border-slate-800 text-emerald-400 px-3 py-1 rounded-full font-mono mt-3 max-w-[220px] truncate block">
+                  {prod.description}
+                </span>
+              ) : (
+                <span className="text-[10px] bg-slate-900 border border-slate-800 text-amber-400 px-3 py-1 rounded-full font-mono mt-3 block">
+                  Novo Vidro no Catálogo
+                </span>
+              );
+            })()}
+
+            <div className="flex w-full gap-3 mt-6">
+              <button
+                type="button"
+                onClick={confirmPendingScan}
+                className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-xs py-3 rounded-xl transition cursor-pointer shadow-lg shadow-cyan-500/20 active:scale-95"
+              >
+                Confirmar
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingScan(null)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-3 rounded-xl transition cursor-pointer active:scale-95"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Premium Notification Toast with User Avatar and App Logo */}
