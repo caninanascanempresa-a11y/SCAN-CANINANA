@@ -96,17 +96,46 @@ export default function ProfileTab({
       alert('Por favor, envie apenas arquivos de imagem.');
       return;
     }
-    // Limit size to ~500kb to keep localStorage happy
-    if (file.size > 500 * 1024) {
-      alert('A imagem é muito grande. Escolha uma imagem de até 500 KB para economizar memória offline.');
+    // Permite até 8MB para fotos de alta resolução do celular
+    if (file.size > 8 * 1024 * 1024) {
+      alert('A imagem é muito grande. Escolha uma imagem de até 8 MB.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        targetSetter(e.target.result as string);
-        playBeep('success');
+        const img = new Image();
+        img.onload = () => {
+          // Redimensionar e comprimir para ~400px de largura
+          const canvas = document.createElement('canvas');
+          const maxDim = 400;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > maxDim) {
+              height *= maxDim / width;
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width *= maxDim / height;
+              height = maxDim;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // Compressão de 70% jpeg
+            targetSetter(compressedDataUrl);
+            playBeep('success');
+          }
+        };
+        img.src = e.target.result as string;
       }
     };
     reader.readAsDataURL(file);
