@@ -252,7 +252,7 @@ function syncData(payload) {
           "", // Frete Rateado
           "", // Valor Total (calculado por fórmula ou preenchido depois)
           mov.user, // Responsável
-          "Sincronizado via Smartphone" // Observações
+          "" // Observações (Vazio conforme solicitado)
         ]);
       } else if (mov.type === "Saída" && sheetSaidas) {
         sheetSaidas.appendRow([
@@ -265,7 +265,7 @@ function syncData(payload) {
           "", // Solicitante
           "Oficina", // Destino padrão
           mov.user, // Responsável
-          "Sincronizado via Smartphone" // Observações
+          "" // Observações (Vazio conforme solicitado)
         ]);
       }
     }
