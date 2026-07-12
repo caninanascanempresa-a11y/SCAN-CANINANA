@@ -22,13 +22,6 @@ export const GOOGLE_APPS_SCRIPT_CODE = `/**
  */
 
 function doPost(e) {
-  var responseHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
-  };
-
   try {
     var requestData = JSON.parse(e.postData.contents);
     var action = requestData.action;
@@ -43,41 +36,27 @@ function doPost(e) {
     }
 
     return ContentService.createTextOutput(JSON.stringify({ success: true, data: result }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(responseHeaders);
+      .setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(responseHeaders);
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function doOptions(e) {
-  var responseHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  };
   return ContentService.createTextOutput("")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeaders(responseHeaders);
+    .setMimeType(ContentService.MimeType.TEXT);
 }
 
 function doGet(e) {
-  var responseHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "application/json"
-  };
   try {
     var result = fetchAllData();
     return ContentService.createTextOutput(JSON.stringify({ success: true, data: result }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(responseHeaders);
+      .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(responseHeaders);
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
