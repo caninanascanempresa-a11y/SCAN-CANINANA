@@ -219,7 +219,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         <div className="flex flex-col items-center space-y-6 animate-pulse">
           <div className="relative w-36 h-36 rounded-3xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.5)]">
             <img 
-              src="/logo-caninana.jpeg" 
+              src="./logo-caninana.jpeg" 
               alt="Logo Caninana Scan" 
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -251,7 +251,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         <div className="text-center mb-8 mt-2 flex flex-col items-center">
           <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-800 shadow-md mb-4">
             <img 
-              src="/logo-caninana.jpeg" 
+              src="./logo-caninana.jpeg" 
               alt="Logo" 
               className="w-full h-full object-cover"
             />
