@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Caninana Scan - Folha de Testes QR Code</title>
+  <style>
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #22d3ee;
+      font-size: 2rem;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background-color: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #22d3ee;
+    }
+    .img-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      background-color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+    .qr-container {
+      position: relative;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 16px;
+      margin-top: 15px;
+    }
+    .qr-container img.qr {
+      width: 150px;
+      height: 150px;
+      display: block;
+    }
+    .qr-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      background-color: #020617;
+      border: 2px solid #22d3ee;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #22d3ee;
+      font-weight: 900;
+      font-size: 0.7rem;
+      font-family: monospace;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .ean {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      margin-top: 10px;
+    }
+    .name {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin: 5px 0;
+    }
+    .category {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Caninana Scan 🦎</h1>
+  <p class="subtitle">Folha de Testes Rápidos com QR Codes Funcionais (Manda para o Google Sheets e Supabase)</p>
+
+  <div class="grid">
+    <!-- PRODUTO 1 -->
+    <div class="card">
+      <div class="img-wrapper">🚘</div>
+      <div class="category">Vidros Dianteiros</div>
+      <div class="name">Para-brisa Corolla 2022</div>
+      <div class="ean">7891020304050</div>
+      <div class="qr-container">
+        <!-- QR Code gerado por API pública com link direto para o código -->
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=7891020304050" alt="QR Code">
+        <div class="qr-logo">CS</div>
+      </div>
+    </div>
+
+    <!-- PRODUTO 2 -->
+    <div class="card">
+      <div class="img-wrapper">🚙</div>
+      <div class="category">Vidros Traseiros</div>
+      <div class="name">Vigia Traseiro Civic 2020</div>
+      <div class="ean">7891122334455</div>
+      <div class="qr-container">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=7891122334455" alt="QR Code">
+        <div class="qr-logo">CS</div>
+      </div>
+    </div>
+
+    <!-- PRODUTO 3 -->
+    <div class="card">
+      <div class="img-wrapper">🛞</div>
+      <div class="category">Acessórios</div>
+      <div class="name">Jogo de Calotas Hilux 2021</div>
+      <div class="ean">7892233445566</div>
+      <div class="qr-container">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=7892233445566" alt="QR Code">
+        <div class="qr-logo">CS</div>
+      </div>
+    </div>
+
+    <!-- PRODUTO 4 -->
+    <div class="card">
+      <div class="img-wrapper">🚗</div>
+      <div class="category">Vidros Laterais</div>
+      <div class="name">Vidro Porta Lateral HB20</div>
+      <div class="ean">7893344556677</div>
+      <div class="qr-container">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=7893344556677" alt="QR Code">
+        <div class="qr-logo">CS</div>
+      </div>
+    </div>
+
+    <!-- PRODUTO 5 -->
+    <div class="card">
+      <div class="img-wrapper">🛠️</div>
+      <div class="category">Acessórios e Colas</div>
+      <div class="name">Cola Poliuretano Vidro Wurth</div>
+      <div class="ean">7894455667788</div>
+      <div class="qr-container">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=7894455667788" alt="QR Code">
+        <div class="qr-logo">CS</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
