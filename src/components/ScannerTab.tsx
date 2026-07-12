@@ -138,6 +138,10 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     };
   }, []);
 
+  // Anti-repeat scanner throttling references
+  const lastScannedCodeRef = useRef<string | null>(null);
+  const lastScannedTimeRef = useRef<number>(0);
+
   const handleBarcodeScanned = (barcode: string) => {
     const code = barcode.trim();
     if (!code) return;
@@ -145,6 +149,15 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     if (onCustomScan && onCustomScan(code)) {
       return;
     }
+
+    // Trava de 3.5 segundos para o mesmo código de barras para não apitar sem parar
+    const now = Date.now();
+    if (lastScannedCodeRef.current === code && (now - lastScannedTimeRef.current) < 3500) {
+      return; // Ignora leituras repetidas rápidas
+    }
+
+    lastScannedCodeRef.current = code;
+    lastScannedTimeRef.current = now;
 
     // Play initial notification sounds
     const product = products.find((p) => p.barcode === code);
@@ -746,63 +759,6 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         </form>
       )}
 
-      {/* SIMULATED BARCODE READER SECTION FOR TESTING */}
-      <div id="barcode-simulator" className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
-          <Scan className="text-cyan-400" size={16} />
-          <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Simulador de Código</h3>
-        </div>
-        
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { code: '7891020304050', label: 'Vidro Corolla' },
-              { code: '7891122334455', label: 'Para-brisa Civic' },
-              { code: '7892233445566', label: 'Retrovisor Hilux' },
-              { code: '7893344556677', label: 'Vidro Lateral HB20' }
-            ].map((sim) => (
-              <button
-                key={sim.code}
-                type="button"
-                onClick={() => handleBarcodeScanned(sim.code)}
-                className="bg-slate-950 hover:bg-slate-850 border border-slate-850 p-2.5 rounded-xl text-left transition active:scale-97 cursor-pointer"
-              >
-                <div className="text-[10px] font-bold text-white truncate">{sim.label}</div>
-                <div className="text-[8px] text-slate-500 font-mono mt-0.5">{sim.code}</div>
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              id="simulator-custom-barcode"
-              type="text"
-              className="flex-1 bg-slate-950 border border-slate-850 text-white rounded-xl py-2.5 px-4 text-xs font-mono focus:outline-none focus:border-cyan-500 placeholder-slate-650"
-              placeholder="Digite outro código..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const input = e.currentTarget;
-                  handleBarcodeScanned(input.value);
-                  input.value = '';
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.getElementById('simulator-custom-barcode') as HTMLInputElement;
-                if (el && el.value.trim()) {
-                  handleBarcodeScanned(el.value.trim());
-                  el.value = '';
-                }
-              }}
-              className="bg-slate-800 hover:bg-slate-750 border border-slate-750 text-slate-350 text-xs px-4 rounded-xl transition cursor-pointer"
-            >
-              Ler
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
