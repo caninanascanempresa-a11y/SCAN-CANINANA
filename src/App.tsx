@@ -138,6 +138,7 @@ export default function App() {
   
   // Active Screen Tab
   const [activeTab, setActiveTab] = useState<'Scanner' | 'Logs' | 'Perfil'>('Scanner');
+  const [hasNewActivity, setHasNewActivity] = useState(false);
 
   // Persistence triggers
   useEffect(() => {
@@ -154,7 +155,21 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('caninana_logs', JSON.stringify(logs));
+    // Se não estiver na aba perfil, ativa a bolinha vermelha para novos scans
+    if (logs.length > 0) {
+      const lastLog = logs[logs.length - 1];
+      if (lastLog && lastLog.message.includes('escaneou') && activeTab !== 'Perfil') {
+        setHasNewActivity(true);
+      }
+    }
   }, [logs]);
+
+  // Limpa o badge ao acessar a aba Perfil
+  useEffect(() => {
+    if (activeTab === 'Perfil') {
+      setHasNewActivity(false);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem('caninana_gas_url', gasUrl);
@@ -853,6 +868,11 @@ export default function App() {
               {/* Active neon dot indicator */}
               {isActive && (
                 <span className="absolute -top-1 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
+              )}
+
+              {/* Red Activity dot for Perfil/Equipe tab */}
+              {tab.id === 'Perfil' && hasNewActivity && (
+                <span className="absolute top-1 right-8 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-slate-900 z-10 shadow-[0_0_6px_#ef4444]"></span>
               )}
               
               <IconComponent size={22} className={isActive ? 'scale-110 transition-transform' : ''} />

@@ -55,9 +55,18 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
 
   // Animation visual feedback
   const [flashSuccess, setFlashSuccess] = useState(false);
+  const [notification, setNotification] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
   const scannerId = 'html5-qrcode-scanner-viewport';
+
+  // Auto clear notification
+  useEffect(() => {
+    if (notification) {
+      const t = setTimeout(() => setNotification(null), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [notification]);
 
   // Toggle Camera
   const toggleCamera = async () => {
@@ -140,11 +149,13 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     const product = products.find((p) => p.barcode === code);
 
     if (isContinuous) {
-      playBeep('success');
       if (product) {
+        playBeep('success');
+        setNotification({ text: `Produto escaneado com sucesso!`, type: 'success' });
         commitScan(code, product, 1);
       } else {
-        playBeep('warning');
+        playBeep('error');
+        setNotification({ text: `Erro: Produto não encontrado!`, type: 'error' });
         setScannedBarcode(code);
         setMatchedProduct(null);
         setNewDescription('');
@@ -152,7 +163,13 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
         setIsCreatingProduct(true);
       }
     } else {
-      playBeep('success');
+      if (product) {
+        playBeep('success');
+        setNotification({ text: `Produto escaneado com sucesso!`, type: 'success' });
+      } else {
+        playBeep('error');
+        setNotification({ text: `Erro: Produto não encontrado!`, type: 'error' });
+      }
       setScannedBarcode(code);
       setMatchedProduct(product || null);
       setQuantity(1);
@@ -305,6 +322,17 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
           flashSuccess ? 'border-green-500 scale-[1.01] shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'border-slate-800'
         } bg-slate-950 flex flex-col items-center justify-center`}
       >
+        {/* Dynamic Notification Toast */}
+        {notification && (
+          <div className={`absolute top-4 left-4 right-4 z-30 p-3 rounded-2xl border text-center text-xs font-bold font-mono tracking-wide shadow-lg animate-fade-in flex items-center justify-center gap-2 ${
+            notification.type === 'success' 
+              ? 'bg-emerald-950/90 text-emerald-400 border-emerald-800/80 shadow-emerald-500/10' 
+              : 'bg-red-950/90 text-red-400 border-red-800/80 shadow-red-500/10'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${notification.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-ping`}></span>
+            {notification.text}
+          </div>
+        )}
         {/* Professional Square QR Code Aiming Overlay */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
           <div className="w-64 h-64 border border-cyan-500/20 relative flex items-center justify-center bg-black/10">

@@ -3,49 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Native Web Audio API Beep Synthesizer (No external files required)
+// Native Web Audio API Beep Synthesizer + Custom MP3 Sounds
 export function playBeep(type: 'success' | 'error' | 'warning' = 'success') {
   try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
+    // Custom audio elements
     if (type === 'success') {
-      // Short, clean high-pitched chirp like Honeywell/Zebra scanners
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1450, ctx.currentTime);
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.01);
-      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.08);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
-      
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.12);
-    } else if (type === 'error') {
-      // Low, triple buzz warning beep
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(150, ctx.currentTime);
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.01);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
-      
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.26);
-    } else {
-      // Warning double chirp
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
-      
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.16);
+      const audio = new Audio('/scaneado.mp3');
+      audio.volume = 0.6;
+      audio.play().catch(() => playNativeBeep('success'));
+    } else if (type === 'error' || type === 'warning') {
+      const audio = new Audio('/nao_encontrado.mp3');
+      audio.volume = 0.6;
+      audio.play().catch(() => playNativeBeep('error'));
     }
 
     // Attempt haptic vibration feedback for mobile devices
@@ -60,6 +29,39 @@ export function playBeep(type: 'success' | 'error' | 'warning' = 'success') {
     }
   } catch (err) {
     console.warn('Audio/Vibration feedback blocked or unsupported:', err);
+  }
+}
+
+// Fallback synthesizer
+function playNativeBeep(type: 'success' | 'error') {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1450, ctx.currentTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.12);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.26);
+    }
+  } catch (e) {
+    console.warn(e);
   }
 }
 
