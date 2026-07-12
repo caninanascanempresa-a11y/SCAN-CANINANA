@@ -878,16 +878,21 @@ export default function App() {
             )}
           </div>
 
-          {/* Sync Button */}
+          {/* Sync Button with active verde and disconnected vermelho styling */}
           <button
             onClick={syncDataWithSupabase}
             disabled={isSyncing}
-            className={`w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center text-slate-400 hover:text-white active:scale-95 transition ${
-              isSyncing ? 'animate-spin border-cyan-500 text-cyan-400' : ''
+            className={`px-2.5 h-8 rounded-lg border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-[9px] font-bold font-mono uppercase tracking-wider ${
+              isSyncing 
+                ? 'bg-cyan-950 border-cyan-500 text-cyan-400 animate-pulse'
+                : isOnline 
+                  ? 'bg-emerald-950/70 border-emerald-800/80 text-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.15)] hover:bg-emerald-900/60' 
+                  : 'bg-rose-950/60 border-rose-900/80 text-rose-400 hover:bg-rose-900/50'
             }`}
-            title="Sincronizar"
+            title={isOnline ? "Conectado - Sincronizar" : "Sem Internet - Sincronizar Local"}
           >
-            <CloudLightning size={13} />
+            <CloudLightning size={12} className={isSyncing ? 'animate-spin' : ''} />
+            <span>{isOnline ? 'CONECTADO' : 'OFFLINE'}</span>
           </button>
 
           {/* Logout button */}
