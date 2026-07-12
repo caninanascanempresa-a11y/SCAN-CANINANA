@@ -677,6 +677,29 @@ export default function App() {
     }
 
     try {
+      // 0. Sincronizar produtos novos inseridos localmente (inclusive os buscados dinamicamente na planilha) para o Supabase
+      const { data: currentCloudProducts, error: fetchErr } = await supabase.from('products').select('barcode');
+      if (!fetchErr && currentCloudProducts) {
+        const cloudBarcodes = new Set(currentCloudProducts.map(p => p.barcode));
+        const unsyncedProducts = products.filter(p => !cloudBarcodes.has(p.barcode));
+        
+        if (unsyncedProducts.length > 0) {
+          const { error: insertProdErr } = await supabase
+            .from('products')
+            .insert(
+              unsyncedProducts.map(p => ({
+                barcode: p.barcode,
+                description: p.description,
+                category: p.category,
+                application: p.application,
+                stock: p.stock,
+                min_stock: p.minStock
+              }))
+            );
+          if (insertProdErr) console.error('Erro ao sincronizar novos produtos para o Supabase:', insertProdErr);
+        }
+      }
+
       // 1. Sync pending system logs to Supabase
       const unsyncedLogs = logs.filter((l) => l.id !== 'log_init');
       if (unsyncedLogs.length > 0) {
