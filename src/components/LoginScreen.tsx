@@ -36,6 +36,8 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regRole, setRegRole] = useState<'Operador' | 'Administrador'>('Operador');
+  const [regAdminCode, setRegAdminCode] = useState('');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -131,7 +133,14 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
     }
 
     const cleanUsername = regEmail.trim().split('@')[0].toLowerCase(); // Usar a primeira parte do email profissional como username
-    const regRole = 'Operador'; // Default role for new signups
+    
+    // Validar código de administrador se o cargo selecionado for Administrador
+    if (regRole === 'Administrador' && regAdminCode.trim() !== 'admin2026') {
+      setError('Código de Segurança do Administrador inválido.');
+      playBeep('error');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Try pushing to Supabase first
@@ -388,6 +397,32 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-wider font-mono">Cargo Principal</label>
+              <select
+                className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3 px-4 text-xs focus:border-cyan-500 focus:outline-none transition cursor-pointer"
+                value={regRole}
+                onChange={(e) => setRegRole(e.target.value as any)}
+              >
+                <option value="Operador">Estoquista (Com Scanner)</option>
+                <option value="Administrador">Administrador (Sem Scanner + Relatórios)</option>
+              </select>
+            </div>
+
+            {regRole === 'Administrador' && (
+              <div>
+                <label className="block text-cyan-400 text-[10px] font-bold mb-1.5 uppercase tracking-wider font-mono animate-pulse">Código Único Adm</label>
+                <input
+                  type="password"
+                  className="w-full bg-slate-955 border border-cyan-900/60 text-white rounded-2xl py-3 px-4 text-xs focus:border-cyan-500 focus:outline-none placeholder-slate-650 transition font-mono"
+                  placeholder="Digite o código master"
+                  value={regAdminCode}
+                  onChange={(e) => setRegAdminCode(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-2 bg-red-950/40 border border-red-900/50 text-red-400 p-3 rounded-2xl text-[11px] leading-relaxed">

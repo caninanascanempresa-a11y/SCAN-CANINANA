@@ -247,6 +247,10 @@ export default function App() {
     setCurrentUser(user);
     localStorage.setItem('caninana_user', JSON.stringify(user));
     
+    if (user.role === 'Administrador') {
+      setActiveTab('Logs');
+    }
+    
     // Append log
     addLog(`Operador ${user.name} autenticado no nível [${user.role}].`, 'success', user.username);
   };
@@ -837,59 +841,151 @@ export default function App() {
         )}
 
         {activeTab === 'Logs' && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white">Minhas Coletas</h2>
-              <span className="text-[10px] bg-slate-850 border border-slate-800 text-slate-400 font-mono px-2.5 py-1 rounded-full uppercase">
-                {scanLogs.length} Scans
-              </span>
-            </div>
-            
-            {scanLogs.length === 0 ? (
-              <div className="text-center py-16 text-slate-650 font-medium">
-                Nenhuma coleta registrada por você recentemente.
+          currentUser.role === 'Administrador' ? (
+            /* ADMIN EXECUTIVE DASHBOARD VIEW (NO SCANNER) */
+            <div className="space-y-6 animate-fade-in pb-10">
+              <div className="flex justify-between items-center pb-2.5 border-b border-slate-800">
+                <div>
+                  <h2 className="text-xl font-bold text-white tracking-tight">Painel Caninana Admin</h2>
+                  <p className="text-[10px] text-cyan-400 font-mono tracking-wider uppercase mt-0.5">Visão Geral da Empresa</p>
+                </div>
+                <span className="text-[10px] bg-slate-900 border border-slate-800 text-slate-400 font-mono px-3 py-1 rounded-full uppercase">
+                  Modo Gestor
+                </span>
               </div>
-            ) : (
-              <div className="space-y-3.5">
-                {scanLogs.slice().reverse().map((log) => (
-                  <div key={log.id} className="bg-slate-900 border border-slate-850 p-4 rounded-2xl flex flex-col gap-3 relative overflow-hidden">
-                    <div className="flex justify-between items-start">
-                      <span className="text-[10px] text-cyan-400 font-mono">
-                        {new Date(log.timestamp).toLocaleTimeString()} - {new Date(log.timestamp).toLocaleDateString()}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-mono uppercase bg-slate-950 px-2 py-0.5 rounded border border-slate-850">
-                        @{log.user}
-                      </span>
-                    </div>
-                    
-                    <p className="text-xs text-slate-200 leading-relaxed font-sans">{log.message}</p>
-                    
-                    {/* Botão de abrir planilha individual para cada log */}
-                    <div className="pt-2 border-t border-slate-850/50 flex justify-end">
-                      <button 
-                        type="button"
-                        onClick={() => setShowSpreadsheetModal(true)}
-                        className="text-[10px] font-bold font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-3 rounded-lg bg-slate-950 border border-slate-850/60 active:scale-95 transition cursor-pointer"
-                      >
-                        📊 ABRIR PLANILHA
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
-            {/* ABRIR PLANILHA DE PRODUCAO PRINCIPAL BUTTON */}
-            <div className="pt-2">
-              <button 
-                type="button"
-                onClick={() => setShowSpreadsheetModal(true)}
-                className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg active:scale-98"
-              >
-                📊 ABRIR PLANILHA ORIGINAL (SAÍDAS DIÁRIAS)
-              </button>
+              {/* Statistical Cards Grid */}
+              <div className="grid grid-cols-2 gap-3.5">
+                <div className="bg-slate-900 border border-slate-850 p-4.5 rounded-2xl flex flex-col justify-between shadow-lg">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-mono">Total Coletas (Transações)</span>
+                  <span className="text-3xl font-extrabold text-white font-mono mt-2">
+                    {logs.filter(l => l.message.includes('escaneou') || l.message.includes('leitura') || l.message.includes('registrado')).length}
+                  </span>
+                </div>
+                <div className="bg-slate-900 border border-slate-850 p-4.5 rounded-2xl flex flex-col justify-between shadow-lg">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-mono">Equipe Ativa</span>
+                  <span className="text-3xl font-extrabold text-cyan-400 font-mono mt-2">
+                    {users.length} <span className="text-xs text-slate-500 font-sans">membros</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Employees List with Avatar and individual scans */}
+              <div className="bg-slate-900 border border-slate-850 p-5 rounded-3xl shadow-lg space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
+                  <UserIcon className="text-cyan-400" size={16} />
+                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Membros da Equipe & Scans</h3>
+                </div>
+                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  {users.map((u) => {
+                    const scanCount = logs.filter(l => l.user === u.username && (l.message.includes('escaneou') || l.message.includes('leitura') || l.message.includes('registrado'))).length;
+                    
+                    return (
+                      <div key={u.username} className="flex items-center justify-between bg-slate-950/80 border border-slate-850/50 p-3 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
+                            {u.avatar ? (
+                              <img src={u.avatar} alt={u.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center font-bold font-mono text-xs text-cyan-400 bg-slate-900">
+                                {u.name.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-white">{u.name}</div>
+                            <div className="text-[9px] text-slate-500 font-mono mt-0.5 uppercase tracking-wide">@{u.username} • {u.role}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs font-bold text-white font-mono">{scanCount}</div>
+                          <div className="text-[8px] text-slate-500 font-mono uppercase">Scans</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Embedded Spreadsheets Live Preview */}
+              <div className="bg-slate-900 border border-slate-850 p-4 rounded-3xl shadow-lg space-y-3.5">
+                <div className="flex justify-between items-center pb-1.5 border-b border-slate-850">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse"></span>
+                    <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Planilha em Tempo Real</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowSpreadsheetModal(true)}
+                    className="text-[10px] font-bold font-mono text-cyan-400 bg-slate-950 hover:bg-slate-900 border border-slate-850 px-3 py-1.5 rounded-lg active:scale-95 transition cursor-pointer"
+                  >
+                    Ampliar 📐
+                  </button>
+                </div>
+                <div className="h-[260px] bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden relative shadow-inner">
+                  <iframe 
+                    src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/htmlembed?widget=false&headers=false&chrome=false&gid=2040683050" 
+                    className="w-full h-full border-none bg-white scale-[0.98] origin-center rounded-xl"
+                    title="Planilha Caninana Saídas Diárias Admin"
+                  ></iframe>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* OPERATOR MY SCANS LIST VIEW */
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h2 className="text-lg font-bold text-white">Minhas Coletas</h2>
+                <span className="text-[10px] bg-slate-850 border border-slate-800 text-slate-400 font-mono px-2.5 py-1 rounded-full uppercase">
+                  {scanLogs.length} Scans
+                </span>
+              </div>
+              
+              {scanLogs.length === 0 ? (
+                <div className="text-center py-16 text-slate-650 font-medium">
+                  Nenhuma coleta registrada por você recentemente.
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {scanLogs.slice().reverse().map((log) => (
+                    <div key={log.id} className="bg-slate-900 border border-slate-850 p-4 rounded-2xl flex flex-col gap-3 relative overflow-hidden">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[10px] text-cyan-400 font-mono">
+                          {new Date(log.timestamp).toLocaleTimeString()} - {new Date(log.timestamp).toLocaleDateString()}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono uppercase bg-slate-950 px-2 py-0.5 rounded border border-slate-850">
+                          @{log.user}
+                        </span>
+                      </div>
+                      
+                      <p className="text-xs text-slate-200 leading-relaxed font-sans">{log.message}</p>
+                      
+                      {/* Botão de abrir planilha individual para cada log */}
+                      <div className="pt-2 border-t border-slate-850/50 flex justify-end">
+                        <button 
+                          type="button"
+                          onClick={() => setShowSpreadsheetModal(true)}
+                          className="text-[10px] font-bold font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-3 rounded-lg bg-slate-950 border border-slate-850/60 active:scale-95 transition cursor-pointer"
+                        >
+                          📊 ABRIR PLANILHA
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ABRIR PLANILHA DE PRODUCAO PRINCIPAL BUTTON */}
+              <div className="pt-2">
+                <button 
+                  type="button"
+                  onClick={() => setShowSpreadsheetModal(true)}
+                  className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg active:scale-98"
+                >
+                  📊 ABRIR PLANILHA ORIGINAL (SAÍDAS DIÁRIAS)
+                </button>
+              </div>
+            </div>
+          )
         )}
 
         {activeTab === 'Perfil' && (
@@ -932,11 +1028,11 @@ export default function App() {
       )}
 
       {/* FLOATING FOOTER NAV RAIL - Transparent background, elevated icons, floating */}
-      <nav id="coletor-bottom-nav" className="grid grid-cols-3 gap-4 pt-1 pb-4 px-8 fixed bottom-6 left-0 w-full z-45 bg-transparent pointer-events-none">
-        <div className="col-span-3 flex justify-around items-center w-full max-w-sm mx-auto bg-slate-950/80 backdrop-blur-lg border border-slate-800/80 rounded-3xl py-2 px-4 shadow-[0_15px_30px_rgba(0,0,0,0.6)] pointer-events-auto">
+      <nav id="coletor-bottom-nav" className={`grid ${currentUser.role === 'Administrador' ? 'grid-cols-2' : 'grid-cols-3'} gap-4 pt-1 pb-4 px-8 fixed bottom-6 left-0 w-full z-45 bg-transparent pointer-events-none`}>
+        <div className={`col-span-3 flex justify-around items-center w-full max-w-sm mx-auto bg-slate-950/80 backdrop-blur-lg border border-slate-800/80 rounded-3xl py-2 px-4 shadow-[0_15px_30px_rgba(0,0,0,0.6)] pointer-events-auto`}>
           {[
-            { id: 'Scanner', icon: Scan, label: 'Escanear' },
-            { id: 'Logs', icon: Activity, label: 'Logs' },
+            ...(currentUser.role !== 'Administrador' ? [{ id: 'Scanner', icon: Scan, label: 'Escanear' }] : []),
+            { id: 'Logs', icon: Activity, label: currentUser.role === 'Administrador' ? 'Painel' : 'Logs' },
             { id: 'Perfil', icon: UserIcon, label: 'Equipe' }
           ].map((tab) => {
             const IconComponent = tab.icon;
