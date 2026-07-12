@@ -710,6 +710,30 @@ export default function App() {
       setMovements((prev) => prev.map((m) => ({ ...m, synced: true })));
       setInventory((prev) => prev.map((i) => ({ ...i, synced: true })));
 
+      // 4.1. Push data to Google Sheets via GAS Web App URL if configured
+      if (gasUrl) {
+        try {
+          const sheetsPayload = {
+            action: 'sync',
+            payload: {
+              movements: unsyncedMovements,
+              inventory: unsyncedInventory
+            }
+          };
+          
+          await fetch(gasUrl, {
+            method: 'POST',
+            mode: 'no-cors', // Avoid CORS errors on mobile WebView redirect
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sheetsPayload)
+          });
+          
+          addLog('Planilha Google Sheets sincronizada com sucesso!', 'success', 'Sistema');
+        } catch (sheetsErr) {
+          console.error('GAS Spreadsheet Sync failed:', sheetsErr);
+        }
+      }
+
       addLog(`Supabase sincronizado! Estoques e transações em nuvem atualizados.`, 'success', 'Sistema');
       playBeep('success');
     } catch (err: any) {
