@@ -355,31 +355,22 @@ export default function ProfileTab({
               <div className="flex flex-col items-center justify-center py-2">
                 {/* Clickable Circle Avatar preview */}
                 <div 
-                  onClick={() => {
-                    const el = document.getElementById('my-gallery-input');
-                    if (el) {
-                      el.setAttribute('capture', ''); // Resets capture to allow gallery
-                      el.removeAttribute('capture');
-                      el.click();
-                    }
-                  }}
-                  className="shrink-0 relative group cursor-pointer active:scale-95 transition"
+                  className="shrink-0 relative group cursor-pointer active:scale-95 transition w-24 h-24"
                 >
                   <input
                     id="my-gallery-input"
                     type="file"
                     accept="image/*"
-                    className="hidden"
+                    className="absolute inset-0 w-full h-full opacity-0 z-30 cursor-pointer"
                     onChange={(e) => handleFileChange(e, setProfileAvatar)}
                   />
-                  {renderAvatar(profileAvatar, profileName, "w-24 h-24 ring-4 ring-cyan-500/25 shadow-lg")}
-                  <div className="absolute bottom-0 right-0 bg-cyan-500 hover:bg-cyan-600 text-slate-950 p-2 rounded-full shadow-lg border-2 border-slate-900 flex items-center justify-center">
+                  {renderAvatar(profileAvatar, profileName, "w-24 h-24 ring-4 ring-cyan-500/25 shadow-lg relative z-10")}
+                  <div className="absolute bottom-0 right-0 bg-cyan-500 hover:bg-cyan-600 text-slate-950 p-2 rounded-full shadow-lg border-2 border-slate-900 flex items-center justify-center z-20">
                     <Camera size={14} />
                   </div>
                 </div>
                 <span className="text-[9px] text-slate-500 font-mono mt-2 uppercase tracking-wide">Toque na foto para abrir a Galeria</span>
               </div>
-
             </div>
 
             {/* Fields */}
@@ -555,21 +546,18 @@ export default function ProfileTab({
                   <label className="block text-slate-400 text-[9px] uppercase font-bold tracking-wider mb-1.5 font-mono">
                     Foto do Operador
                   </label>
-                  <div className="flex items-center gap-3">
-                    {renderAvatar(editAvatar, editName, "w-12 h-12")}
-                    <div className="flex-1">
-                      <div
-                        onClick={() => document.getElementById('edit-gallery-input')?.click()}
-                        className="border border-dashed border-slate-850 hover:border-slate-750 rounded-xl p-2 text-center cursor-pointer text-[9px] font-medium text-slate-450 bg-slate-950"
-                      >
-                        <input
-                          id="edit-gallery-input"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileChange(e, setEditAvatar)}
-                        />
-                        <span className="text-cyan-400 font-semibold">Alterar Foto</span> (Galeria)
+                  <div className="flex flex-col items-center justify-center w-full py-1">
+                    <div className="relative group cursor-pointer active:scale-95 transition w-16 h-16">
+                      <input
+                        id="edit-gallery-input"
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 z-30 cursor-pointer"
+                        onChange={(e) => handleFileChange(e, setEditAvatar)}
+                      />
+                      {renderAvatar(editAvatar, editName, "w-16 h-16 ring-2 ring-cyan-500/20 shadow-lg relative z-10")}
+                      <div className="absolute bottom-0 right-0 bg-cyan-500 text-slate-950 p-1.5 rounded-full shadow border border-slate-900 flex items-center justify-center z-20">
+                        <Camera size={10} />
                       </div>
                     </div>
                   </div>
