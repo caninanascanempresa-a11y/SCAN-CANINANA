@@ -750,8 +750,15 @@ export default function App() {
     return <LoginScreen onLogin={handleLogin} users={users} onAddUserLocal={handleAddUser} />;
   }
 
-  // Obter apenas logs gerados por escaneamentos para a segunda aba
-  const scanLogs = logs.filter(l => l.message.toLowerCase().includes('leitura') || l.message.toLowerCase().includes('inventariado') || l.message.toLowerCase().includes('registrado'));
+  // Obter apenas logs gerados por escaneamentos para a segunda aba (Apenas da conta do usuário logado)
+  const scanLogs = logs.filter(
+    (l) =>
+      (l.message.toLowerCase().includes('leitura') ||
+        l.message.toLowerCase().includes('inventariado') ||
+        l.message.toLowerCase().includes('registrado') ||
+        l.message.toLowerCase().includes('escaneou')) &&
+      l.user === currentUser.username
+  );
 
   return (
     <div id="coletor-shell" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased pb-20">
@@ -831,20 +838,20 @@ export default function App() {
         {activeTab === 'Logs' && (
           <div className="space-y-4 animate-fade-in">
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white">Histórico de Coletas</h2>
+              <h2 className="text-lg font-bold text-white">Minhas Coletas</h2>
               <span className="text-[10px] bg-slate-850 border border-slate-800 text-slate-400 font-mono px-2.5 py-1 rounded-full uppercase">
                 {scanLogs.length} Scans
               </span>
             </div>
             
             {scanLogs.length === 0 ? (
-              <div className="text-center py-16 text-slate-600 font-medium">
-                Nenhum código escaneado recentemente.
+              <div className="text-center py-16 text-slate-650 font-medium">
+                Nenhuma coleta registrada por você recentemente.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {scanLogs.slice().reverse().map((log) => (
-                  <div key={log.id} className="bg-slate-900 border border-slate-850 p-4 rounded-2xl flex flex-col gap-2">
+                  <div key={log.id} className="bg-slate-900 border border-slate-850 p-4 rounded-2xl flex flex-col gap-3 relative overflow-hidden">
                     <div className="flex justify-between items-start">
                       <span className="text-[10px] text-cyan-400 font-mono">
                         {new Date(log.timestamp).toLocaleTimeString()} - {new Date(log.timestamp).toLocaleDateString()}
@@ -853,21 +860,34 @@ export default function App() {
                         @{log.user}
                       </span>
                     </div>
+                    
                     <p className="text-xs text-slate-200 leading-relaxed font-sans">{log.message}</p>
+                    
+                    {/* Botão de abrir planilha individual para cada log */}
+                    <div className="pt-2 border-t border-slate-850/50 flex justify-end">
+                      <a 
+                        href="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/edit?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-3 rounded-lg bg-slate-950 border border-slate-850/60 active:scale-95 transition"
+                      >
+                        📊 ABRIR PLANILHA
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* ABRIR PLANILHA DE TESTES BUTTON */}
+            {/* ABRIR PLANILHA DE PRODUCAO PRINCIPAL BUTTON */}
             <div className="pt-2">
               <a 
-                href="https://docs.google.com/spreadsheets/d/1TWQWvp-dZXT2h1XUmt-_CtOp7zsXkt3U8l6zbKcQthA/edit?usp=sharing"
+                href="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/edit?usp=sharing"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg"
               >
-                📊 ABRIR PLANILHA VINCULADA
+                📊 ABRIR PLANILHA ORIGINAL
               </a>
             </div>
           </div>
