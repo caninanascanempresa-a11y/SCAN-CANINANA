@@ -31,7 +31,7 @@ interface ScannerTabProps {
 }
 
 export default function ScannerTab({ products, onAddProduct, onAddMovement, onAddInventoryItem, user, onCustomScan, getApiUrl }: ScannerTabProps) {
-  const [scanMode, setScanMode] = useState<'Entrada' | 'Saída' | 'Transferência' | 'Inventário'>('Inventário');
+  const [scanMode, setScanMode] = useState<'Entrada' | 'Saída' | 'Transferência' | 'Inventário'>('Saída');
   const [isContinuous, setIsContinuous] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [originLocation, setOriginLocation] = useState('Geral');
@@ -299,26 +299,30 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       
       {/* MODE SELECTOR */}
       <div id="mode-selector" className="bg-slate-900 p-1.5 rounded-2xl border border-slate-800 grid grid-cols-4 gap-1.5 shadow-lg">
-        {(['Entrada', 'Saída', 'Transferência', 'Inventário'] as const).map((mode) => (
-          <button
-            key={mode}
-            id={`mode-btn-${mode.toLowerCase()}`}
-            type="button"
-            onClick={() => {
-              setScanMode(mode);
-            }}
-            className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-center cursor-pointer transition-all ${
-              scanMode === mode 
-                ? 'bg-cyan-500 text-slate-950 shadow-md font-extrabold' 
-                : 'text-slate-500 hover:text-slate-350'
-            }`}
-          >
-            {mode === 'Entrada' && 'Entrada'}
-            {mode === 'Saída' && 'Saída'}
-            {mode === 'Transferência' && 'Transf.'}
-            {mode === 'Inventário' && 'Invent.'}
-          </button>
-        ))}
+        {(['Entrada', 'Saída', 'Transferência', 'Inventário'] as const).map((mode) => {
+          const isSaida = mode === 'Saída';
+          return (
+            <button
+              key={mode}
+              id={`mode-btn-${mode.toLowerCase()}`}
+              type="button"
+              disabled={!isSaida}
+              onClick={() => {
+                if (isSaida) setScanMode(mode);
+              }}
+              className={`py-2 px-1 rounded-xl text-[9px] font-bold uppercase tracking-wider font-mono text-center transition-all ${
+                isSaida 
+                  ? 'bg-cyan-500 text-slate-950 shadow-md font-extrabold cursor-pointer active:scale-95' 
+                  : 'text-slate-700 bg-slate-950/20 border border-slate-850/20 cursor-not-allowed opacity-50'
+              }`}
+            >
+              {mode === 'Entrada' && 'Entr. (breve)'}
+              {mode === 'Saída' && 'Saída'}
+              {mode === 'Transferência' && 'Transf. (breve)'}
+              {mode === 'Inventário' && 'Inven. (breve)'}
+            </button>
+          );
+        })}
       </div>
 
       {/* CONTINUOUS READING AND SCANNING SETUP */}

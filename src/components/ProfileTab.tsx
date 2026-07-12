@@ -475,9 +475,9 @@ export default function ProfileTab({
                     ? JSON.parse(localStorage.getItem('caninana_logs') || '[]')
                     : [];
                   
-                  // Filtrar apenas logs de escaneamento
+                  // Filtrar apenas logs de escaneamento da conta do próprio operador conectado
                   const scanLogs = rawLogs.filter((log: any) => 
-                    log.message.includes('escaneou')
+                    log.message.includes('escaneou') && log.user === currentUser.username
                   );
 
                   if (scanLogs.length === 0) {
