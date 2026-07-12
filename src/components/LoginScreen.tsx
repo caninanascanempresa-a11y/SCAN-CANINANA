@@ -51,11 +51,16 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
 
     try {
       // 1. Try to query directly from Supabase for real-time validation if online
-      const { data: remoteUser, error: queryErr } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', typedUser)
-        .single();
+      const isEmail = typedUser.includes('@');
+      
+      let query = supabase.from('users').select('*');
+      if (isEmail) {
+        query = query.eq('email', typedUser);
+      } else {
+        query = query.eq('username', typedUser);
+      }
+      
+      const { data: remoteUser, error: queryErr } = await query.maybeSingle();
 
       if (!queryErr && remoteUser) {
         if (remoteUser.password_hash === typedPass) {
@@ -65,7 +70,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
             name: remoteUser.name,
             role: remoteUser.role,
             email: remoteUser.email || '',
-            avatar: ''
+            avatar: remoteUser.avatar || ''
           });
           setLoading(false);
           return;
@@ -82,7 +87,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
 
     // 2. Offline Contingency: Fallback to the local memory/cached users database or initial default login
     const found = users.find(
-      (u) => u.username.toLowerCase() === typedUser && u.passwordHash === typedPass
+      (u) => (u.username.toLowerCase() === typedUser || (u.email && u.email.toLowerCase() === typedUser)) && u.passwordHash === typedPass
     );
 
     if (found) {
@@ -105,7 +110,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         avatar: ''
       });
     } else {
-      setError('Usuário não cadastrado localmente ou senha incorreta.');
+      setError('E-mail profissional ou senha inválidos.');
       playBeep('error');
     }
     setLoading(false);
@@ -260,7 +265,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
           /* LOGIN FORM */
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-slate-400 text-xs font-semibold mb-2 font-mono uppercase tracking-wider">Usuário</label>
+              <label className="block text-slate-400 text-xs font-semibold mb-2 font-mono uppercase tracking-wider">E-mail Profissional</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
                   <UserCheck size={16} />
@@ -269,7 +274,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
                   id="username-input"
                   type="text"
                   className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:border-cyan-500 focus:outline-none placeholder-slate-600 transition"
-                  placeholder="admin ou seu e-mail"
+                  placeholder="Ex: breno@caninana.com.br"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
