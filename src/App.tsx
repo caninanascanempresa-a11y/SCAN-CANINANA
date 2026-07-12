@@ -923,7 +923,7 @@ export default function App() {
                 </div>
                 <div className="h-[260px] bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden relative shadow-inner">
                   <iframe 
-                    src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/htmlembed?widget=false&headers=false&chrome=false&gid=2040683050" 
+                    src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/preview?gid=2040683050" 
                     className="w-full h-full border-none bg-white scale-[0.98] origin-center rounded-xl"
                     title="Planilha Caninana Saídas Diárias Admin"
                   ></iframe>
@@ -1019,7 +1019,7 @@ export default function App() {
           {/* Embedded Google Sheets IFrame pointing directly to Saídas Diárias */}
           <div className="flex-1 bg-slate-950 border-x border-b border-slate-800 rounded-b-3xl overflow-hidden shadow-2xl relative">
             <iframe 
-              src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/htmlembed?widget=false&headers=false&chrome=false&gid=2040683050" 
+              src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/preview?gid=2040683050" 
               className="w-full h-full border-none bg-white"
               title="Planilha Caninana Saídas Diárias"
             ></iframe>

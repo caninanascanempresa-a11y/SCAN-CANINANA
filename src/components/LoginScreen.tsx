@@ -101,7 +101,7 @@ export default function LoginScreen({ onLogin, users = [], onAddUserLocal }: Log
         email: found.email,
         avatar: found.avatar,
       });
-    } else if (typedUser === 'admin' && typedPass === '123') {
+    } else if (typedUser === 'admin' && typedPass === 'admin2412') {
       // Guarantee entry for first-time use if Supabase tables aren't created yet
       playBeep('success');
       onLogin({

@@ -463,59 +463,61 @@ export default function ProfileTab({
             </div>
           </form>
 
-          {/* TEAM SCANS ACTIVITY STREAM */}
-          <div className="mt-6 space-y-4 border-t border-slate-800 pt-5">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Atividades de Escaneamento</h3>
-            </div>
-            
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-              {(() => {
-                const rawLogs = localStorage.getItem('caninana_logs') 
-                  ? JSON.parse(localStorage.getItem('caninana_logs') || '[]')
-                  : [];
-                
-                // Filtrar apenas logs de escaneamento
-                const scanLogs = rawLogs.filter((log: any) => 
-                  log.message.includes('escaneou')
-                );
-
-                if (scanLogs.length === 0) {
-                  return (
-                    <div className="text-center p-6 bg-slate-950 rounded-2xl border border-slate-850">
-                      <p className="text-[10px] text-slate-550 font-mono uppercase">Nenhuma atividade de escaneamento registrada</p>
-                    </div>
+          {/* TEAM SCANS ACTIVITY STREAM - HIDE IF ADMIN */}
+          {currentUser.role !== 'Administrador' && (
+            <div className="mt-6 space-y-4 border-t border-slate-800 pt-5">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Atividades de Escaneamento</h3>
+              </div>
+              
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {(() => {
+                  const rawLogs = localStorage.getItem('caninana_logs') 
+                    ? JSON.parse(localStorage.getItem('caninana_logs') || '[]')
+                    : [];
+                  
+                  // Filtrar apenas logs de escaneamento
+                  const scanLogs = rawLogs.filter((log: any) => 
+                    log.message.includes('escaneou')
                   );
-                }
 
-                // Ordenar decrescente por data/timestamp
-                const sortedLogs = [...scanLogs].sort((a: any, b: any) => 
-                  new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-                );
-
-                return sortedLogs.map((log: any) => {
-                  // Encontrar detalhes do usuário correspondente para puxar o avatar
-                  const logUser = users.find(u => u.username === log.user);
-                  const userName = logUser ? logUser.name : log.user;
-
-                  return (
-                    <div key={log.id} className="flex items-center gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-850 hover:bg-slate-950/60 transition">
-                      {renderAvatar(logUser?.avatar || '', userName, "w-8 h-8 text-xs")}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-slate-205 font-medium truncate">
-                          {log.message}
-                        </p>
-                        <span className="text-[8px] text-slate-550 font-mono">
-                          {new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • @{log.user}
-                        </span>
+                  if (scanLogs.length === 0) {
+                    return (
+                      <div className="text-center p-6 bg-slate-950 rounded-2xl border border-slate-850">
+                        <p className="text-[10px] text-slate-550 font-mono uppercase">Nenhuma atividade de escaneamento registrada</p>
                       </div>
-                    </div>
+                    );
+                  }
+
+                  // Ordenar decrescente por data/timestamp
+                  const sortedLogs = [...scanLogs].sort((a: any, b: any) => 
+                    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
                   );
-                });
-              })()}
+
+                  return sortedLogs.map((log: any) => {
+                    // Encontrar detalhes do usuário correspondente para puxar o avatar
+                    const logUser = users.find(u => u.username === log.user);
+                    const userName = logUser ? logUser.name : log.user;
+
+                    return (
+                      <div key={log.id} className="flex items-center gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-850 hover:bg-slate-950/60 transition">
+                        {renderAvatar(logUser?.avatar || '', userName, "w-8 h-8 text-xs")}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-slate-205 font-medium truncate">
+                            {log.message}
+                          </p>
+                          <span className="text-[8px] text-slate-555 font-mono">
+                            {new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • @{log.user}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         /* TEAM ROSTER VIEW */
