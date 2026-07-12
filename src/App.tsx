@@ -29,6 +29,81 @@ import ProfileTab from './components/ProfileTab';
 import { playBeep } from './utils/audio';
 import { supabase } from './utils/supabaseClient';
 
+// Componente Modal de Planilha com controles nativos de Zoom
+interface SpreadsheetModalProps {
+  src: string;
+  onClose: () => void;
+}
+
+function SpreadsheetModal({ src, onClose }: SpreadsheetModalProps) {
+  const [sheetZoom, setSheetZoom] = useState(1.0);
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col p-4 animate-fade-in">
+      {/* Header Panel */}
+      <div className="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-t-3xl shadow-lg shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></span>
+          <span className="text-[10px] font-bold text-white uppercase font-mono tracking-wider">Planilha (Saídas Diárias)</span>
+        </div>
+        
+        {/* Zoom Controls */}
+        <div className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-xl border border-slate-850">
+          <button 
+            type="button"
+            onClick={() => setSheetZoom(prev => Math.max(0.5, prev - 0.1))}
+            className="w-6 h-6 rounded-md bg-slate-900 text-white font-bold text-xs flex items-center justify-center border border-slate-800 active:scale-90"
+            title="Zoom Out"
+          >
+            -
+          </button>
+          <span className="text-[9px] font-mono text-cyan-400 font-bold px-1">{Math.round(sheetZoom * 100)}%</span>
+          <button 
+            type="button"
+            onClick={() => setSheetZoom(prev => Math.min(2.0, prev + 0.1))}
+            className="w-6 h-6 rounded-md bg-slate-900 text-white font-bold text-xs flex items-center justify-center border border-slate-800 active:scale-90"
+            title="Zoom In"
+          >
+            +
+          </button>
+          <button 
+            type="button"
+            onClick={() => setSheetZoom(1.0)}
+            className="text-[8px] font-bold text-slate-400 hover:text-white font-mono px-1.5 active:scale-90"
+          >
+            100%
+          </button>
+        </div>
+
+        <button 
+          onClick={onClose}
+          className="w-8 h-8 rounded-xl bg-slate-950 hover:bg-red-955/40 text-slate-400 hover:text-red-400 border border-slate-850 flex items-center justify-center transition active:scale-95 cursor-pointer font-bold font-mono text-xs"
+        >
+          X
+        </button>
+      </div>
+      
+      {/* Embedded Google Sheets IFrame pointing directly to Saídas Diárias */}
+      <div className="flex-1 bg-white border-x border-b border-slate-800 rounded-b-3xl overflow-hidden shadow-2xl relative">
+        <div 
+          className="w-full h-full overflow-auto transition-transform duration-200"
+          style={{
+            width: `${100 / sheetZoom}%`,
+            height: `${100 / sheetZoom}%`,
+            transform: `scale(${sheetZoom})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          <iframe 
+            src={src}
+            className="w-full h-full border-none bg-white"
+            title="Planilha Caninana Saídas Diárias"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -768,38 +843,38 @@ export default function App() {
   return (
     <div id="coletor-shell" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased pb-20">
       
-      {/* CLEAN MINIMALIST HEADER */}
-      <header id="coletor-header" className="bg-slate-900 border-b border-slate-800 px-6 py-4 sticky top-0 z-40 flex items-center justify-between shadow-md">
+      {/* CLEAN MINIMALIST HEADER - Adjusted for Notch/Hole-punch Camera screens */}
+      <header id="coletor-header" className="bg-slate-900 border-b border-slate-800 px-5 pt-10 pb-4 sticky top-0 z-40 flex items-center justify-between shadow-md transition-all">
         
-        {/* Profile Operator */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-inner shrink-0 overflow-hidden text-cyan-400 font-extrabold text-sm uppercase">
-            {currentUser.name ? currentUser.name.substring(0, 2) : 'OP'}
+        {/* Left Side: Profile Operator */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl border border-slate-700 bg-slate-850 shrink-0 overflow-hidden flex items-center justify-center text-cyan-400 font-extrabold text-xs uppercase shadow-inner">
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt="Foto" className="w-full h-full object-cover" />
+            ) : (
+              currentUser.name ? currentUser.name.substring(0, 2) : 'OP'
+            )}
           </div>
-          <div className="leading-tight">
-            <div className="text-sm font-bold text-white truncate max-w-[130px]">{currentUser.name}</div>
-            <div className="text-[10px] text-slate-500 font-bold font-mono tracking-wider uppercase flex items-center gap-1">
-              <Shield size={11} className="text-cyan-500 shrink-0" />
+          <div className="leading-none">
+            <div className="text-xs font-bold text-white truncate max-w-[100px]">{currentUser.name}</div>
+            <div className="text-[8px] text-slate-500 font-bold font-mono tracking-wider uppercase mt-1 flex items-center gap-0.5">
               {currentUser.role}
             </div>
           </div>
         </div>
 
-        {/* Brand center name */}
-        <div className="text-center shrink-0">
-          <span className="text-white font-extrabold font-sans tracking-widest text-sm uppercase">
+        {/* Right Side: Brand Name & Action items (Sync, Signal, Exit) */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-white font-black font-sans tracking-widest text-[11px] uppercase mr-2 font-mono">
             CANINANA <span className="text-cyan-500">SCAN</span>
           </span>
-        </div>
-
-        {/* Action Header Items */}
-        <div className="flex items-center gap-3 shrink-0">
+          
           {/* Signal Indicator */}
-          <div className="flex items-center">
+          <div className="flex items-center justify-center w-4">
             {isOnline ? (
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" title="Online"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" title="Online"></span>
             ) : (
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" title="Offline"></span>
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="Offline"></span>
             )}
           </div>
 
@@ -807,21 +882,21 @@ export default function App() {
           <button
             onClick={syncDataWithSupabase}
             disabled={isSyncing}
-            className={`w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850 cursor-pointer active:scale-95 transition ${
+            className={`w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center text-slate-400 hover:text-white active:scale-95 transition ${
               isSyncing ? 'animate-spin border-cyan-500 text-cyan-400' : ''
             }`}
             title="Sincronizar"
           >
-            <CloudLightning size={15} />
+            <CloudLightning size={13} />
           </button>
 
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 hover:bg-rose-950/40 flex items-center justify-center text-slate-400 hover:text-rose-400 active:scale-95 transition cursor-pointer"
+            className="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 hover:bg-rose-955/40 flex items-center justify-center text-slate-400 hover:text-rose-400 active:scale-95 transition cursor-pointer"
             title="Sair"
           >
-            <LogOut size={15} />
+            <LogOut size={13} />
           </button>
         </div>
       </header>
@@ -999,32 +1074,12 @@ export default function App() {
         )}
       </main>
 
-      {/* EMBEDDED SPREADSHEET MODAL (IFRAME WITH BLUR BACKGROUND & X BUTTON) */}
+      {/* EMBEDDED SPREADSHEET MODAL (IFRAME WITH BLUR BACKGROUND, ZOOM CONTROLS & X BUTTON) */}
       {showSpreadsheetModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col p-4 animate-fade-in">
-          {/* Header Panel */}
-          <div className="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-t-3xl shadow-lg shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></span>
-              <span className="text-xs font-bold text-white uppercase font-mono tracking-wider">Planilha Automatizada (Saídas Diárias)</span>
-            </div>
-            <button 
-              onClick={() => setShowSpreadsheetModal(false)}
-              className="w-8 h-8 rounded-xl bg-slate-950 hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-slate-850 flex items-center justify-center transition active:scale-95 cursor-pointer font-bold font-mono text-xs"
-            >
-              X
-            </button>
-          </div>
-          
-          {/* Embedded Google Sheets IFrame pointing directly to Saídas Diárias */}
-          <div className="flex-1 bg-slate-950 border-x border-b border-slate-800 rounded-b-3xl overflow-hidden shadow-2xl relative">
-            <iframe 
-              src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/preview?gid=2040683050" 
-              className="w-full h-full border-none bg-white"
-              title="Planilha Caninana Saídas Diárias"
-            ></iframe>
-          </div>
-        </div>
+        <SpreadsheetModal 
+          src="https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/preview?gid=2040683050" 
+          onClose={() => setShowSpreadsheetModal(false)}
+        />
       )}
 
       {/* FLOATING FOOTER NAV RAIL - Transparent background, elevated icons, floating */}
