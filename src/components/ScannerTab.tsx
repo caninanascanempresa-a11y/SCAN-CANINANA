@@ -318,10 +318,17 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
       {/* CORE CAMERA VIEWPORT PANELS - Square Aspect for QR Codes */}
       <div 
         id="camera-panel-wrapper" 
-        className={`relative aspect-square w-full max-w-sm mx-auto rounded-3xl overflow-hidden border transition-all duration-300 ${
-          flashSuccess ? 'border-green-500 scale-[1.01] shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'border-slate-800'
+        className={`relative aspect-square w-full max-w-sm mx-auto rounded-3xl overflow-hidden border-2 transition-all duration-500 ${
+          flashSuccess 
+            ? 'border-emerald-400 scale-[1.03] shadow-[0_0_40px_rgba(52,211,153,0.8)]' 
+            : 'border-slate-800'
         } bg-slate-950 flex flex-col items-center justify-center`}
       >
+        {/* Full Green Glow Overlay when Scanned Successfully */}
+        {flashSuccess && (
+          <div className="absolute inset-0 bg-emerald-500/20 mix-blend-screen z-20 pointer-events-none animate-ping duration-300"></div>
+        )}
+
         {/* Premium Notification Toast with User Avatar and App Logo */}
         {notification && (
           <div className={`absolute top-4 left-4 right-4 z-30 p-3 rounded-2xl border shadow-2xl animate-fade-in flex items-center gap-3 backdrop-blur-md ${
