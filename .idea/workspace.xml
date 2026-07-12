@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9a67a7ad-927f-4720-8fc6-a93d86c2e8a0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/LoginScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/LoginScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ProfileTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ProfileTab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/ScannerTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ScannerTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/assets/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/assets/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

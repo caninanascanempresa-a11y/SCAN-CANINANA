@@ -416,6 +416,9 @@ export default function App() {
   const handleAddMovement = (newMovement: Movement) => {
     setMovements((prev) => [...prev, newMovement]);
 
+    const prod = products.find((p) => p.barcode === newMovement.barcode);
+    const prodDesc = prod ? prod.description : `EAN ${newMovement.barcode}`;
+
     // Instantly adjust local stock for immediate feedback
     setProducts((prevProducts) => {
       return prevProducts.map((p) => {
@@ -433,7 +436,7 @@ export default function App() {
     });
 
     addLog(
-      `Leitura efetuada: ${newMovement.type} de ${newMovement.quantity} un do item ${newMovement.barcode}.`,
+      `${currentUser?.name || 'Operador'} escaneou ${prodDesc}`,
       'success',
       currentUser?.username || 'Sistema'
     );
@@ -464,9 +467,11 @@ export default function App() {
     });
 
     const prod = products.find((p) => p.barcode === newItem.barcode);
+    const prodDesc = prod ? prod.description : `EAN ${newItem.barcode}`;
+    
     addLog(
-      `Inventariado: EAN ${newItem.barcode} (${prod ? prod.description.substring(0, 20) : 'Novo'}). Qtd total lida: +${newItem.countedQuantity}.`,
-      'info',
+      `${currentUser?.name || 'Operador'} escaneou ${prodDesc}`,
+      'success',
       currentUser?.username || 'Sistema'
     );
 
