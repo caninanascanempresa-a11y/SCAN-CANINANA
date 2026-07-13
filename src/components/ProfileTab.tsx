@@ -464,9 +464,27 @@ export default function ProfileTab({
           {/* TEAM SCANS ACTIVITY STREAM - HIDE IF ADMIN */}
           {currentUser.role !== 'Administrador' && (
             <div className="mt-6 space-y-4 border-t border-slate-800 pt-5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Atividades de Escaneamento</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Atividades de Escaneamento</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("Deseja limpar seu histórico local de atividades do perfil?")) {
+                      const rawLogs = localStorage.getItem('caninana_logs') 
+                        ? JSON.parse(localStorage.getItem('caninana_logs') || '[]')
+                        : [];
+                      const filtered = rawLogs.filter((log: any) => log.user !== currentUser.username);
+                      localStorage.setItem('caninana_logs', JSON.stringify(filtered));
+                      window.location.reload(); // Recarrega para aplicar a limpeza visual instantaneamente
+                    }
+                  }}
+                  className="text-[9px] font-bold font-mono text-rose-400 bg-slate-950 hover:bg-slate-900 border border-slate-850 px-2 py-1 rounded active:scale-95 transition"
+                >
+                  Limpar 🗑️
+                </button>
               </div>
               
               <div className="space-y-3 max-h-72 overflow-y-auto pr-1">

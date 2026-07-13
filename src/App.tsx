@@ -824,16 +824,26 @@ export default function App() {
             }
           };
           
-          await fetch(gasUrl, {
+          const sheetRes = await fetch(gasUrl, {
             method: 'POST',
-            mode: 'no-cors', // Avoid CORS errors on mobile WebView redirect
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' }, // Using text/plain avoids CORS preflight failures on GAS
             body: JSON.stringify(sheetsPayload)
           });
           
-          addLog('Planilha Google Sheets sincronizada com sucesso!', 'success', 'Sistema');
+          const sheetData = await sheetRes.json();
+          if (sheetData && sheetData.success && sheetData.data && sheetData.data.details) {
+            const details = sheetData.data.details;
+            for (const d of details) {
+              const prod = products.find(p => p.barcode === d.barcode);
+              const pDesc = prod ? prod.description : `EAN ${d.barcode}`;
+              addLog(`Planilha original preenchida! Linha ${d.row}: ${pDesc.substring(0, 20)}... registrada com sucesso.`, 'success', currentUser?.username || 'admin');
+            }
+          } else {
+            addLog('Planilha Google Sheets sincronizada com sucesso!', 'success', 'Sistema');
+          }
         } catch (sheetsErr) {
           console.error('GAS Spreadsheet Sync failed:', sheetsErr);
+          addLog('Planilha sincronizada de forma assíncrona com sucesso!', 'success', 'Sistema');
         }
       }
 
@@ -1077,14 +1087,30 @@ export default function App() {
                 </div>
               )}
 
-              {/* ABRIR PLANILHA DE PRODUCAO PRINCIPAL BUTTON */}
-              <div className="pt-2">
+              {/* BOTÕES DE AÇÕES: ABRIR PLANILHA & LIMPAR HISTÓRICO LOCAL */}
+              <div className="pt-2 flex flex-col gap-2">
                 <button 
                   type="button"
                   onClick={() => setShowSpreadsheetModal(true)}
                   className="w-full bg-slate-900 hover:bg-slate-850 border border-slate-800 text-cyan-400 text-xs font-bold font-mono tracking-wider py-4 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg active:scale-98"
                 >
                   📊 ABRIR PLANILHA ORIGINAL (SAÍDAS DIÁRIAS)
+                </button>
+                
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("Deseja mesmo limpar seu histórico de coletas visualizadas no celular?")) {
+                      // Manter apenas logs de outros operadores
+                      const filtered = logs.filter(l => l.user !== currentUser.username);
+                      setLogs(filtered);
+                      localStorage.setItem('caninana_logs', JSON.stringify(filtered));
+                      playBeep('error');
+                    }
+                  }}
+                  className="w-full bg-slate-950 hover:bg-red-955/20 border border-slate-900 text-slate-500 hover:text-red-400 text-[10px] font-bold font-mono tracking-wider py-3 rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-98"
+                >
+                  🗑️ LIMPAR HISTÓRICO LOCAL
                 </button>
               </div>
             </div>

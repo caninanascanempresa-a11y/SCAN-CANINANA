@@ -210,30 +210,30 @@ function syncData(payload) {
     var sheetEntradas = ss.getSheetByName("ENTRADAS NF");
     var sheetSaidas = ss.getSheetByName("SAÍDAS DIÁRIAS");
     
+    var results = [];
     for (var i = 0; i < payload.movements.length; i++) {
       var mov = payload.movements[i];
       var barcodeStr = String(mov.barcode);
-      
-      // Encontrar a descrição do produto na aba Cadastro
       var description = getProductDescription(ss, barcodeStr);
       
       if (mov.type === "Entrada" && sheetEntradas) {
-        // Obter próximo número de linha
         var nextRow = sheetEntradas.getLastRow() + 1;
         sheetEntradas.appendRow([
           mov.date ? mov.date.split("T")[0] : dateStr, // Data Entrada
-          "", // NF (vazio ou preenchido pelo usuário depois)
+          "", // NF
           barcodeStr, // Código Produto
           description, // Descrição
           "", // Fornecedor
           Number(mov.quantity), // Quantidade Entrada
           0, // Valor Unitario
           "", // Frete Rateado
-          "", // Valor Total (calculado por fórmula ou preenchido depois)
+          "", // Valor Total
           mov.user, // Responsável
-          "" // Observações (Vazio conforme solicitado)
+          "" // Observações
         ]);
+        results.push({ barcode: barcodeStr, type: "Entrada", row: nextRow });
       } else if (mov.type === "Saída" && sheetSaidas) {
+        var nextRow = sheetSaidas.getLastRow() + 1;
         sheetSaidas.appendRow([
           mov.date ? mov.date.split("T")[0] : dateStr, // Data
           barcodeStr, // Código Produto
@@ -244,11 +244,14 @@ function syncData(payload) {
           "", // Solicitante
           "Oficina", // Destino padrão
           mov.user, // Responsável
-          "" // Observações (Vazio conforme solicitado)
+          "" // Observações
         ]);
+        results.push({ barcode: barcodeStr, type: "Saída", row: nextRow });
       }
     }
+    return { success: true, details: results };
   }
+  return { success: true };
   
   // 2. Inserir Contagens de Inventário
   if (payload.inventory && payload.inventory.length > 0) {
