@@ -16,7 +16,9 @@ import {
   Shield,
   Activity,
   UserCheck,
-  User as UserIcon
+  User as UserIcon,
+  Bell,
+  Globe
 } from 'lucide-react';
 import { Product, Movement, InventoryItem, SystemLog, User } from './types';
 import { INITIAL_PRODUCTS } from './initialData';
@@ -197,9 +199,35 @@ export default function App() {
   const [teamNotification, setTeamNotification] = useState<{ name: string; message: string; type: string } | null>(null);
   const [lastScannedByTeam, setLastScannedByTeam] = useState<Record<string, number>>({});
 
+  // Configurações do Coletor
+  const [appTheme, setAppTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('caninana_theme') as any) || 'dark';
+  });
+  const [appLanguage, setAppLanguage] = useState<'pt' | 'en' | 'es'>(() => {
+    return (localStorage.getItem('caninana_language') as any) || 'pt';
+  });
+  const [showConfigModal, setShowConfigModal] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('caninana_backend_url', backendUrl);
   }, [backendUrl]);
+
+  useEffect(() => {
+    localStorage.setItem('caninana_theme', appTheme);
+    // Aplicar ou remover classe light no body para garantir estilização global do WebView
+    const body = document.body;
+    if (appTheme === 'light') {
+      body.classList.add('light-theme');
+      body.style.backgroundColor = '#f8fafc';
+    } else {
+      body.classList.remove('light-theme');
+      body.style.backgroundColor = '#020617';
+    }
+  }, [appTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('caninana_language', appLanguage);
+  }, [appLanguage]);
 
   // Dynamic API Base URL resolver for hybrid environments (Android WebView vs Web Browser)
   const getApiUrl = (path: string) => {
@@ -923,23 +951,98 @@ export default function App() {
     }
   };
 
-  // Route to Login Screen if not authenticated
-  if (!currentUser) {
-    return <LoginScreen onLogin={handleLogin} users={users} onAddUserLocal={handleAddUser} />;
-  }
+  // Dicionário de traduções de idiomas para o aplicativo
+  const translations = {
+    pt: {
+      title: "Configurações",
+      theme: "Tema do Aplicativo",
+      themeDark: "Preto (Escuro)",
+      themeLight: "Branco (Claro)",
+      language: "Idioma do Aplicativo",
+      close: "Fechar",
+      teamActivity: "Atividade da Equipe",
+      scanTestMessage: "realizou um escaneamento de teste com sucesso!",
+      headerTitle: "CANINANA SCAN",
+      connected: "CONECTADO",
+      offline: "OFFLINE",
+      members: "Membros da Equipe & Scans",
+      totalScans: "Total Coletas (Transações)",
+      activeTeam: "Equipe Ativa",
+      realtimeSheet: "Planilha em Tempo Real",
+      maximize: "Ampliar",
+      myScans: "Minhas Coletas",
+      clearHistory: "LIMPAR HISTÓRICO LOCAL",
+      syncSuccess: "Supabase sincronizado! Estoques e transações em nuvem atualizados."
+    },
+    en: {
+      title: "Settings",
+      theme: "App Theme",
+      themeDark: "Black (Dark)",
+      themeLight: "White (Light)",
+      language: "App Language",
+      close: "Close",
+      teamActivity: "Team Activity",
+      scanTestMessage: "performed a test scan successfully!",
+      headerTitle: "CANINANA SCAN",
+      connected: "CONNECTED",
+      offline: "OFFLINE",
+      members: "Team Members & Scans",
+      totalScans: "Total Scans (Transactions)",
+      activeTeam: "Active Team",
+      realtimeSheet: "Real-time Spreadsheet",
+      maximize: "Maximize",
+      myScans: "My Scans",
+      clearHistory: "CLEAR LOCAL HISTORY",
+      syncSuccess: "Supabase synced! Cloud inventory and transactions updated."
+    },
+    es: {
+      title: "Configuraciones",
+      theme: "Tema de la Aplicación",
+      themeDark: "Negro (Oscuro)",
+      themeLight: "Blanco (Claro)",
+      language: "Idioma de la Aplicación",
+      close: "Cerrar",
+      teamActivity: "Actividad del Equipo",
+      scanTestMessage: "¡realizó un escaneo de prueba con éxito!",
+      headerTitle: "CANINANA SCAN",
+      connected: "CONECTADO",
+      offline: "DESCONECTADO",
+      members: "Miembros del Equipo y Escaneos",
+      totalScans: "Total de Escaneos (Transacciones)",
+      activeTeam: "Equipo Activo",
+      realtimeSheet: "Planilla en Tiempo Real",
+      maximize: "Ampliar",
+      myScans: "Mis Recolecciones",
+      clearHistory: "LIMPIAR HISTORIAL LOCAL",
+      syncSuccess: "¡Supabase sincronizado! Inventario y transacciones en la nube actualizados."
+    }
+  };
 
-  // Obter apenas logs gerados por escaneamentos para a segunda aba (Apenas da conta do usuário logado)
-  const scanLogs = logs.filter(
-    (l) =>
-      (l.message.toLowerCase().includes('leitura') ||
-        l.message.toLowerCase().includes('inventariado') ||
-        l.message.toLowerCase().includes('registrado') ||
-        l.message.toLowerCase().includes('escaneou')) &&
-      l.user === currentUser.username
-  );
+  const t = translations[appLanguage];
+
+  // Função para testar a notificação de scan descendo na tela
+  const triggerTestNotification = () => {
+    // Tocar som de sucesso do bip
+    playBeep('success');
+    
+    // Dispara a notificação flutuante
+    setTeamNotification({
+      name: currentUser.name || "Kelvin",
+      message: `${currentUser.name || "Kelvin"} ${t.scanTestMessage} (Vidro GM Celta)`,
+      type: "success"
+    });
+
+    // Limpa após 6 segundos
+    setTimeout(() => {
+      setTeamNotification(null);
+    }, 6000);
+  };
 
   return (
-    <div id="coletor-shell" className="min-h-screen bg-dynamic text-slate-100 flex flex-col font-sans select-none antialiased pb-20 relative">
+    <div 
+      id="coletor-shell" 
+      className={`min-h-screen ${appTheme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-dynamic text-slate-100'} flex flex-col font-sans select-none antialiased pb-20 relative`}
+    >
       
       {/* BANNER DE NOTIFICAÇÃO REAL DA EQUIPE - DESCE DO TOPO (AZUL ESCURO PARA PRETO) */}
       {teamNotification && (
@@ -951,19 +1054,22 @@ export default function App() {
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                Atividade da Equipe
+                {t.teamActivity}
               </div>
               <p className="text-xs text-white font-medium mt-0.5 leading-normal">
-                <span className="text-cyan-300 font-bold">@{teamNotification.name}</span> realizou uma saída/coleta!
+                <span className="text-cyan-300 font-bold">@{teamNotification.name}</span>
               </p>
-              <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{teamNotification.message}</p>
+              <p className="text-[9px] text-slate-350 font-mono mt-0.5 truncate">{teamNotification.message}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* CLEAN MINIMALIST HEADER - Adjusted for Notch/Hole-punch Camera screens */}
-      <header id="coletor-header" className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-5 pt-10 pb-4 sticky top-0 z-40 flex items-center justify-between shadow-md transition-all">
+      <header 
+        id="coletor-header" 
+        className={`${appTheme === 'light' ? 'bg-white border-b border-slate-200 shadow-sm' : 'bg-slate-900/90 border-b border-slate-800/80'} backdrop-blur-md px-4 pt-10 pb-4 sticky top-0 z-40 flex items-center justify-between shadow-md transition-all`}
+      >
         
         {/* Left Side: Profile Operator (Kelvin / Carlos / etc) - AUMENTADO PARA MELHOR VISUALIZAÇÃO */}
         <div className="flex items-center gap-3">
@@ -975,7 +1081,7 @@ export default function App() {
             )}
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-black text-white leading-none tracking-tight">{currentUser.name}</div>
+            <div className={`text-sm font-black leading-none tracking-tight ${appTheme === 'light' ? 'text-slate-900' : 'text-white'}`}>{currentUser.name}</div>
             <div className="text-[9px] text-cyan-400 font-extrabold font-mono tracking-wider uppercase mt-1.5 bg-cyan-950/65 px-2 py-0.5 rounded border border-cyan-900/50 inline-block">
               {currentUser.role}
             </div>
@@ -983,17 +1089,40 @@ export default function App() {
         </div>
 
         {/* Right Side: Brand Name & Action items (Sync, Signal, Exit) */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-white font-black font-sans tracking-widest text-[11px] uppercase mr-2 font-mono hidden xs:inline">
-            CANINANA <span className="text-cyan-500">SCAN</span>
-          </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          
+          {/* BOTÃO TESTAR NOTIFICAÇÃO (SINO) */}
+          <button
+            onClick={triggerTestNotification}
+            className={`w-8 h-8 rounded-lg border flex items-center justify-center transition active:scale-95 cursor-pointer ${
+              appTheme === 'light' 
+                ? 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100' 
+                : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-cyan-400'
+            }`}
+            title="Testar Notificação de Scan"
+          >
+            <Bell size={13} className="animate-bounce" />
+          </button>
+
+          {/* BOTÃO CONFIGURAÇÕES RÁPIDAS (ENGRENAGEM) */}
+          <button
+            onClick={() => setShowConfigModal(true)}
+            className={`w-8 h-8 rounded-lg border flex items-center justify-center transition active:scale-95 cursor-pointer ${
+              appTheme === 'light' 
+                ? 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100' 
+                : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-cyan-400'
+            }`}
+            title={t.title}
+          >
+            <Settings size={13} />
+          </button>
           
           {/* Signal Indicator */}
-          <div className="flex items-center justify-center w-4">
+          <div className="flex items-center justify-center w-3 mx-1">
             {isOnline ? (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" title="Online"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" title={t.connected}></span>
             ) : (
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="Offline"></span>
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title={t.offline}></span>
             )}
           </div>
 
@@ -1001,7 +1130,7 @@ export default function App() {
           <button
             onClick={syncDataWithSupabase}
             disabled={isSyncing}
-            className={`px-2.5 h-8 rounded-lg border flex items-center justify-center gap-1.5 active:scale-95 transition-all text-[9px] font-bold font-mono uppercase tracking-wider ${
+            className={`px-2 h-8 rounded-lg border flex items-center justify-center gap-1 active:scale-95 transition-all text-[8px] font-bold font-mono uppercase tracking-wider ${
               isSyncing 
                 ? 'bg-cyan-950 border-cyan-500 text-cyan-400 animate-pulse'
                 : isOnline 
@@ -1010,9 +1139,10 @@ export default function App() {
             }`}
             title={isOnline ? "Conectado - Sincronizar" : "Sem Internet - Sincronizar Local"}
           >
-            <CloudLightning size={12} className={isSyncing ? 'animate-spin' : ''} />
-            <span>{isOnline ? 'CONECTADO' : 'OFFLINE'}</span>
+            <CloudLightning size={10} className={isSyncing ? 'animate-spin' : ''} />
+            <span>{isOnline ? t.connected : t.offline}</span>
           </button>
+
 
           {/* Logout button */}
           <button
@@ -1241,9 +1371,106 @@ export default function App() {
         />
       )}
 
+      {/* QUICK SETTINGS DIALOG (THEME & LANGUAGE SELECTOR) */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className={`w-full max-w-sm rounded-3xl p-6 border shadow-2xl space-y-5 ${
+            appTheme === 'light' ? 'bg-white border-slate-250 text-slate-800' : 'bg-slate-900 border-slate-800 text-white'
+          }`}>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-850/50">
+              <h3 className="text-sm font-black uppercase font-mono tracking-wider flex items-center gap-2">
+                ⚙️ {t.title}
+              </h3>
+              <button 
+                onClick={() => setShowConfigModal(false)}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                  appTheme === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
+                }`}
+              >
+                X
+              </button>
+            </div>
+
+            {/* SELETOR DE TEMA CLARO OU ESCURO */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider font-mono opacity-80">
+                🎨 {t.theme}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAppTheme('dark')}
+                  className={`py-3 px-4 rounded-xl font-mono text-[10px] font-bold uppercase transition border ${
+                    appTheme === 'dark' 
+                      ? 'bg-cyan-950 border-cyan-500 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.25)]' 
+                      : appTheme === 'light'
+                        ? 'bg-slate-100 border-slate-200 text-slate-600'
+                        : 'bg-slate-950 border-slate-850 text-slate-500'
+                  }`}
+                >
+                  🌑 {t.themeDark}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAppTheme('light')}
+                  className={`py-3 px-4 rounded-xl font-mono text-[10px] font-bold uppercase transition border ${
+                    appTheme === 'light' 
+                      ? 'bg-cyan-500/10 border-cyan-500 text-cyan-600 shadow-[0_0_8px_rgba(6,182,212,0.15)]' 
+                      : 'bg-slate-950 border-slate-850 text-slate-500'
+                  }`}
+                >
+                  ☀️ {t.themeLight}
+                </button>
+              </div>
+            </div>
+
+            {/* SELETOR DE IDIOMA (PT, EN, ES) */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider font-mono opacity-80">
+                🌐 {t.language}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { code: 'pt', label: 'Português', flag: '🇧🇷' },
+                  { code: 'en', label: 'English', flag: '🇺🇸' },
+                  { code: 'es', label: 'Español', flag: '🇪🇸' }
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setAppLanguage(lang.code as any)}
+                    className={`py-2 px-2.5 rounded-xl font-mono text-[9px] font-bold uppercase transition border flex flex-col items-center justify-center gap-1 ${
+                      appLanguage === lang.code
+                        ? 'bg-cyan-950 border-cyan-500 text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.25)]'
+                        : appTheme === 'light'
+                          ? 'bg-slate-100 border-slate-200 text-slate-500'
+                          : 'bg-slate-950 border-slate-850 text-slate-500'
+                    }`}
+                  >
+                    <span className="text-sm">{lang.flag}</span>
+                    <span>{lang.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowConfigModal(false)}
+              className="w-full py-3 bg-cyan-500 text-slate-950 font-bold uppercase font-mono text-[10px] rounded-xl tracking-wider hover:bg-cyan-600 active:scale-98 transition shadow-md"
+            >
+              {t.close}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* FLOATING FOOTER NAV RAIL - Transparent background, elevated icons, floating */}
       <nav id="coletor-bottom-nav" className={`grid ${currentUser.role === 'Administrador' ? 'grid-cols-2' : 'grid-cols-3'} gap-4 pt-1 pb-4 px-8 fixed bottom-6 left-0 w-full z-45 bg-transparent pointer-events-none`}>
-        <div className={`col-span-3 flex justify-around items-center w-full max-w-sm mx-auto bg-slate-950/80 backdrop-blur-lg border border-slate-800/80 rounded-3xl py-2 px-4 shadow-[0_15px_30px_rgba(0,0,0,0.6)] pointer-events-auto`}>
+        <div className={`col-span-3 flex justify-around items-center w-full max-w-sm mx-auto rounded-3xl py-2 px-4 shadow-[0_15px_30px_rgba(0,0,0,0.6)] pointer-events-auto border ${
+          appTheme === 'light' 
+            ? 'bg-white/90 border-slate-200 text-slate-800 shadow-[0_10px_20px_rgba(0,0,0,0.15)]' 
+            : 'bg-slate-950/80 border-slate-800/80 text-slate-100'
+        }`}>
           {[
             ...(currentUser.role !== 'Administrador' ? [{ id: 'Scanner', icon: Scan, label: 'Escanear' }] : []),
             { id: 'Logs', icon: Activity, label: currentUser.role === 'Administrador' ? 'Painel' : 'Logs' },
@@ -1258,8 +1485,10 @@ export default function App() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex flex-col items-center justify-center py-2.5 px-3 rounded-2xl transition cursor-pointer relative active:scale-95 ${
                   isActive 
-                    ? 'text-cyan-400' 
-                    : 'text-slate-500 hover:text-slate-300'
+                    ? 'text-cyan-500' 
+                    : appTheme === 'light'
+                      ? 'text-slate-400 hover:text-slate-600'
+                      : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
                 {/* Active neon dot indicator */}
