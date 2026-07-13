@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Caninana Scan - Folha de Testes QR Code</title>
+  <style>
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #22d3ee;
+      font-size: 2rem;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background-color: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #22d3ee;
+    }
+    .img-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      background-color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+    .qr-container {
+      position: relative;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 16px;
+      margin-top: 15px;
+      cursor: zoom-in;
+      transition: transform 0.2s;
+    }
+    .qr-container:hover {
+      transform: scale(1.05);
+    }
+    .qr-container img.qr {
+      width: 150px;
+      height: 150px;
+      display: block;
+    }
+    .ean {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      margin-top: 10px;
+    }
+    .name {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin: 5px 0;
+    }
+    .category {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Modal Overlay de Zoom */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(2, 6, 23, 0.95);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .overlay.active {
+      display: flex;
+    }
+    .overlay-content {
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 28px;
+      border: 4px solid #22d3ee;
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.4);
+      animation: zoomIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .overlay-content img {
+      width: 320px;
+      height: 320px;
+      display: block;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Caninana Scan 🦎</h1>
+  <p class="subtitle">Folha de Testes (Toque no QR Code para ampliar e facilitar a leitura da câmera do celular)</p>
+
+  <div class="grid">
+    <!-- PRODUTO 1 -->
+    <div class="card">
+      <div class="img-wrapper">🚘</div>
+      <div class="category">Retrovisor</div>
+      <div class="name">LENTE RETROVISOR SUBCJTO P/PISCA TOYOTA YARIS 18/ LE</div>
+      <div class="ean">3913</div>
+      <div class="qr-container" onclick="openZoom('3913')">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=3913" alt="QR Code">
+      </div>
+    </div>
+
+    <!-- PRODUTO 2 -->
+    <div class="card">
+      <div class="img-wrapper">🛠️</div>
+      <div class="category">Mecanismo</div>
+      <div class="name">MAQ. VIDRO MEC D GOL SPECIAL/G2/G4 VOLKS</div>
+      <div class="ean">1206</div>
+      <div class="qr-container" onclick="openZoom('1206')">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1206" alt="QR Code">
+      </div>
+    </div>
+
+    <!-- PRODUTO 3 -->
+    <div class="card">
+      <div class="img-wrapper">🚗</div>
+      <div class="category">Vidros Laterais</div>
+      <div class="name">VIDRO PORTA DT VW GOL G5/ 08/ VOYAGE LE*</div>
+      <div class="ean">2474</div>
+      <div class="qr-container" onclick="openZoom('2474')">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2474" alt="QR Code">
+      </div>
+    </div>
+
+    <!-- PRODUTO 4 -->
+    <div class="card">
+      <div class="img-wrapper">🚘</div>
+      <div class="category">Vidros Dianteiros</div>
+      <div class="name">PARA-BRISA UNO/FIORINO 10/ DEGRADE</div>
+      <div class="ean">1847</div>
+      <div class="qr-container" onclick="openZoom('1847')">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=1847" alt="QR Code">
+      </div>
+    </div>
+
+    <!-- PRODUTO 5 -->
+    <div class="card">
+      <div class="img-wrapper">🛞</div>
+      <div class="category">Borrachas</div>
+      <div class="name">BORRACHA VIGIA GM CORSA SEDAN 95/16</div>
+      <div class="ean">700</div>
+      <div class="qr-container" onclick="openZoom('700')">
+        <img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=700" alt="QR Code">
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay Modal -->
+  <div id="zoom-overlay" class="overlay" onclick="closeZoom()">
+    <div class="overlay-content">
+      <img id="zoom-img" src="" alt="QR Code Ampliado">
+    </div>
+  </div>
+
+  <script>
+    function openZoom(ean) {
+      const overlay = document.getElementById('zoom-overlay');
+      const zoomImg = document.getElementById('zoom-img');
+      zoomImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=' + ean;
+      overlay.classList.add('active');
+    }
+
+    function closeZoom() {
+      const overlay = document.getElementById('zoom-overlay');
+      overlay.classList.remove('active');
+    }
+  </script>
+</body>
+</html>
