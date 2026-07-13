@@ -184,7 +184,7 @@ export default function ScannerTab({ products, onAddProduct, onAddMovement, onAd
     // Se o produto não for encontrado localmente, fazer busca rápida direta na planilha via API JSON
     if (!product && navigator.onLine) {
       try {
-        const googleUrl = `https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/gviz/tq?tqx=out:json&sheet=CADASTRO%20PRODUTOS&tq=select%20A,B,C,D%20where%20A%20=%20'${code}'`;
+        const googleUrl = `https://docs.google.com/spreadsheets/d/1hpSmTKNZPfvopm_ZayB3KXibNF2CFLwnpqG-OC8WFvg/gviz/tq?tqx=out:json&sheet=CADASTRO%20PRODUTOS&tq=select%20A,B,C,D%20where%20A%20=%20${code}`;
         const res = await fetch(googleUrl);
         const text = await res.text();
         const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/);
