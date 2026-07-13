@@ -2,6 +2,8 @@ package com.caninana.coletor
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -18,7 +20,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private val CAMERA_PERMISSION_REQUEST = 100
+    private val FILE_CHOOSER_REQUEST = 200
     private var permissionRequest: PermissionRequest? = null
+    private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +42,8 @@ class MainActivity : AppCompatActivity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.databaseEnabled = true
-            settings.allowFileAccess = false // Keep false for security, handled by AssetLoader
-            settings.allowContentAccess = false
+            settings.allowFileAccess = true // Necessário para file chooser funcionar
+            settings.allowContentAccess = true // Necessário para acessar content:// URIs da galeria
             settings.mediaPlaybackRequiresUserGesture = false
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             settings.cacheMode = WebSettings.LOAD_DEFAULT
@@ -76,6 +80,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             webChromeClient = object : WebChromeClient() {
+                // Permissão de câmera para leitura de QR Code
                 override fun onPermissionRequest(request: PermissionRequest?) {
                     request?.let {
                         val resources = it.resources
@@ -95,6 +100,32 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+
+                // ====== FILE CHOOSER — Abre a galeria quando <input type="file"> é clicado ======
+                override fun onShowFileChooser(
+                    webView: WebView?,
+                    callback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    // Cancela qualquer callback anterior pendente
+                    filePathCallback?.onReceiveValue(null)
+                    filePathCallback = callback
+
+                    try {
+                        val intent = fileChooserParams?.createIntent()
+                            ?: Intent(Intent.ACTION_GET_CONTENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "image/*"
+                            }
+                        startActivityForResult(intent, FILE_CHOOSER_REQUEST)
+                    } catch (e: Exception) {
+                        filePathCallback?.onReceiveValue(null)
+                        filePathCallback = null
+                        Toast.makeText(this@MainActivity, "Não foi possível abrir a galeria", Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+                    return true
+                }
             }
         }
 
@@ -102,6 +133,21 @@ class MainActivity : AppCompatActivity() {
 
         // Load via the virtual WebViewAssetLoader domain
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+    }
+
+    // ====== Recebe o resultado da galeria e repassa para o WebView ======
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILE_CHOOSER_REQUEST) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                val result = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+                filePathCallback?.onReceiveValue(result)
+            } else {
+                filePathCallback?.onReceiveValue(null)
+            }
+            filePathCallback = null
+        }
     }
 
     override fun onRequestPermissionsResult(
