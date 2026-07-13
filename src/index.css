@@ -6,6 +6,35 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* Fundo Dinâmico Animado */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-dynamic {
+  background: linear-gradient(-45deg, #020617, #0b1528, #050b14, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* Animação para Notificação no Topo (Slide Down) */
+@keyframes slideDown {
+  0% {
+    transform: translate3d(-50%, -100%, 0) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+.notification-slide-down {
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Custom continuous animation pulse for scanner overlay */
 @keyframes scanning {
   0%, 100% {

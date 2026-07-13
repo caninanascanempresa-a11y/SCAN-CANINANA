@@ -193,6 +193,10 @@ export default function App() {
     return localStorage.getItem('caninana_backend_url') || 'http://localhost:3000';
   });
 
+  // Notificações em tempo real da equipe
+  const [teamNotification, setTeamNotification] = useState<{ name: string; message: string; type: string } | null>(null);
+  const [lastScannedByTeam, setLastScannedByTeam] = useState<Record<string, number>>({});
+
   useEffect(() => {
     localStorage.setItem('caninana_backend_url', backendUrl);
   }, [backendUrl]);
@@ -257,7 +261,7 @@ export default function App() {
     localStorage.setItem('caninana_users_db', JSON.stringify(users));
   }, [users]);
 
-  // Fetch initial database state from Supabase
+  // Fetch initial database state and set up Supabase Realtime for Team notifications
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -289,7 +293,66 @@ export default function App() {
         console.error('Could not load database from Supabase, using offline cached data', err);
       }
     };
+    
     loadInitialData();
+
+    // SUPABASE REALTIME SUBSCRIPTION FOR IN-APP NOTIFICATIONS
+    const channel = supabase
+      .channel('public:system_logs')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'system_logs' },
+        (payload) => {
+          const newLog = payload.new as any;
+          if (newLog) {
+            // Adicionar à lista local se não existir
+            setLogs((prev) => {
+              if (prev.some(l => l.id === newLog.id)) return prev;
+              return [...prev, {
+                id: newLog.id,
+                timestamp: newLog.timestamp,
+                message: newLog.message,
+                type: newLog.type,
+                user: newLog.user
+              }];
+            });
+
+            // Disparar notificação in-app se for outro usuário escaneando
+            const savedUser = localStorage.getItem('caninana_user');
+            const localUser = savedUser ? JSON.parse(savedUser) : null;
+            
+            if (localUser && newLog.user !== localUser.username) {
+              // Registra última atividade do usuário na equipe para pulsar verde
+              setLastScannedByTeam(prev => ({
+                ...prev,
+                [newLog.user]: Date.now()
+              }));
+
+              if (newLog.message.includes('escaneou') || newLog.message.includes('leitura')) {
+                // Toca som discreto de notificação
+                playBeep('success');
+                // Encontra nome do operador
+                const operatorName = newLog.message.split(' ')[0] || newLog.user;
+                setTeamNotification({
+                  name: operatorName,
+                  message: newLog.message,
+                  type: newLog.type
+                });
+
+                // Limpa notificação em 6 segundos
+                setTimeout(() => {
+                  setTeamNotification(null);
+                }, 6000);
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Network connection listeners
@@ -876,23 +939,44 @@ export default function App() {
   );
 
   return (
-    <div id="coletor-shell" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased pb-20">
+    <div id="coletor-shell" className="min-h-screen bg-dynamic text-slate-100 flex flex-col font-sans select-none antialiased pb-20 relative">
       
+      {/* BANNER DE NOTIFICAÇÃO REAL DA EQUIPE - DESCE DO TOPO (AZUL ESCURO PARA PRETO) */}
+      {teamNotification && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-50 notification-slide-down pointer-events-auto">
+          <div className="bg-gradient-to-b from-slate-900 via-slate-950 to-black border border-cyan-500/40 p-4 rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.25)] flex items-center gap-3.5 backdrop-blur-md">
+            <div className="w-11 h-11 rounded-full bg-cyan-500/10 border border-cyan-400 flex items-center justify-center text-cyan-400 font-extrabold text-base shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.4)] animate-pulse">
+              🦎
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-black font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                Atividade da Equipe
+              </div>
+              <p className="text-xs text-white font-medium mt-0.5 leading-normal">
+                <span className="text-cyan-300 font-bold">@{teamNotification.name}</span> realizou uma saída/coleta!
+              </p>
+              <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{teamNotification.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CLEAN MINIMALIST HEADER - Adjusted for Notch/Hole-punch Camera screens */}
-      <header id="coletor-header" className="bg-slate-900 border-b border-slate-800 px-5 pt-10 pb-4 sticky top-0 z-40 flex items-center justify-between shadow-md transition-all">
+      <header id="coletor-header" className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-5 pt-10 pb-4 sticky top-0 z-40 flex items-center justify-between shadow-md transition-all">
         
-        {/* Left Side: Profile Operator */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl border border-slate-700 bg-slate-850 shrink-0 overflow-hidden flex items-center justify-center text-cyan-400 font-extrabold text-xs uppercase shadow-inner">
+        {/* Left Side: Profile Operator (Kelvin / Carlos / etc) - AUMENTADO PARA MELHOR VISUALIZAÇÃO */}
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl border-2 border-cyan-500/40 bg-slate-950 shrink-0 overflow-hidden flex items-center justify-center text-cyan-400 font-extrabold text-lg uppercase shadow-[0_0_12px_rgba(6,182,212,0.15)]">
             {currentUser.avatar ? (
               <img src={currentUser.avatar} alt="Foto" className="w-full h-full object-cover" />
             ) : (
               currentUser.name ? currentUser.name.substring(0, 2) : 'OP'
             )}
           </div>
-          <div className="leading-none">
-            <div className="text-xs font-bold text-white truncate max-w-[100px]">{currentUser.name}</div>
-            <div className="text-[8px] text-slate-500 font-bold font-mono tracking-wider uppercase mt-1 flex items-center gap-0.5">
+          <div className="leading-tight">
+            <div className="text-sm font-black text-white leading-none tracking-tight">{currentUser.name}</div>
+            <div className="text-[9px] text-cyan-400 font-extrabold font-mono tracking-wider uppercase mt-1.5 bg-cyan-950/65 px-2 py-0.5 rounded border border-cyan-900/50 inline-block">
               {currentUser.role}
             </div>
           </div>
@@ -900,7 +984,7 @@ export default function App() {
 
         {/* Right Side: Brand Name & Action items (Sync, Signal, Exit) */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-white font-black font-sans tracking-widest text-[11px] uppercase mr-2 font-mono">
+          <span className="text-white font-black font-sans tracking-widest text-[11px] uppercase mr-2 font-mono hidden xs:inline">
             CANINANA <span className="text-cyan-500">SCAN</span>
           </span>
           
@@ -991,14 +1075,24 @@ export default function App() {
                   <UserIcon className="text-cyan-400" size={16} />
                   <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">Membros da Equipe & Scans</h3>
                 </div>
-                <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
                   {users.map((u) => {
                     const scanCount = logs.filter(l => l.user === u.username && (l.message.includes('escaneou') || l.message.includes('leitura') || l.message.includes('registrado'))).length;
                     
+                    // Verifica se esse usuário da equipe realizou scan nos últimos 60 segundos
+                    const lastScanTime = lastScannedByTeam[u.username] || 0;
+                    const isScanningActive = (Date.now() - lastScanTime) < 60000;
+
                     return (
-                      <div key={u.username} className="flex items-center justify-between bg-slate-950/80 border border-slate-850/50 p-3 rounded-xl">
+                      <div key={u.username} className={`flex items-center justify-between bg-slate-950/80 border p-3.5 rounded-xl transition-all duration-300 ${
+                        isScanningActive 
+                          ? 'border-emerald-500 bg-emerald-950/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]' 
+                          : 'border-slate-850/50'
+                      }`}>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
+                          <div className={`w-12 h-12 rounded-xl overflow-hidden bg-slate-900 border flex items-center justify-center shrink-0 relative ${
+                            isScanningActive ? 'border-emerald-400 ring-2 ring-emerald-500/30' : 'border-slate-800'
+                          }`}>
                             {u.avatar ? (
                               <img src={u.avatar} alt={u.name} className="w-full h-full object-cover" />
                             ) : (
@@ -1006,15 +1100,24 @@ export default function App() {
                                 {u.name.substring(0, 2).toUpperCase()}
                               </div>
                             )}
+                            {/* Ponto verde piscando se o membro estiver ativamente escaneando */}
+                            {isScanningActive && (
+                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950 animate-ping"></span>
+                            )}
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-white">{u.name}</div>
-                            <div className="text-[9px] text-slate-500 font-mono mt-0.5 uppercase tracking-wide">@{u.username} • {u.role}</div>
+                            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                              {u.name}
+                              {isScanningActive && (
+                                <span className="text-[7px] bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono font-black uppercase px-1 rounded-sm tracking-wider animate-pulse">Scan Recente</span>
+                              )}
+                            </div>
+                            <div className="text-[9px] text-slate-500 font-mono mt-1.5 uppercase tracking-wide">@{u.username} • {u.role}</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs font-bold text-white font-mono">{scanCount}</div>
-                          <div className="text-[8px] text-slate-500 font-mono uppercase">Scans</div>
+                          <div className={`text-xs font-bold font-mono ${isScanningActive ? 'text-emerald-400 text-sm' : 'text-white'}`}>{scanCount}</div>
+                          <div className="text-[8px] text-slate-500 font-mono uppercase mt-0.5">Scans</div>
                         </div>
                       </div>
                     );
