@@ -700,6 +700,10 @@ export default function App() {
         }
       }
 
+      // Obter as movimentações não sincronizadas antes de atualizarmos os estados locais
+      const unsyncedMovements = movements.filter((m) => !m.synced);
+      const unsyncedInventory = inventory.filter((i) => !i.synced);
+
       // 1. Sync pending system logs to Supabase
       const unsyncedLogs = logs.filter((l) => l.id !== 'log_init');
       if (unsyncedLogs.length > 0) {
@@ -718,7 +722,6 @@ export default function App() {
       }
 
       // 2. Sync pending movements to Supabase
-      const unsyncedMovements = movements.filter((m) => !m.synced);
       if (unsyncedMovements.length > 0) {
         const { error: movErr } = await supabase
           .from('movements')
@@ -753,7 +756,6 @@ export default function App() {
       }
 
       // 3. Sync pending inventory items to Supabase
-      const unsyncedInventory = inventory.filter((i) => !i.synced);
       if (unsyncedInventory.length > 0) {
         const { error: invErr } = await supabase
           .from('inventory')
